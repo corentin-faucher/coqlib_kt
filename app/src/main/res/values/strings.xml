@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Test Cocoblio</string>
+    <string name="hello">Hello, World!</string>
+    <string name="english_only" translatable="false">Only in English</string>
+    <string name="button">Button</string>
+</resources>

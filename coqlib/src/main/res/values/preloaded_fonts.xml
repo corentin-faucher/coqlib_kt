@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/amiri</item>
+        <item>@font/comic_neue</item>
+        <item>@font/courier_prime</item>
+        <item>@font/great_vibes</item>
+        <item>@font/jua</item>
+        <item>@font/kite_one</item>
+        <item>@font/m_plus_rounded_1c_medium</item>
+        <item>@font/nanum_gothic</item>
+        <item>@font/nanum_myeongjo</item>
+        <item>@font/nanum_pen_script</item>
+        <item>@font/neucha</item>
+        <item>@font/noto_sans</item>
+        <item>@font/noto_serif</item>
+        <item>@font/nunito_sans</item>
+        <item>@font/reem_kufi</item>
+        <item>@font/rocknroll_one</item>
+        <item>@font/schoolbell</item>
+        <item>@font/special_elite</item>
+        <item>@font/tajawal_medium</item>
+        <item>@font/tinos</item>
+        <item>@font/yusei_magic</item>
+    </array>
+</resources>
