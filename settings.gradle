@@ -12,6 +12,8 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+
 rootProject.name = "Test Cocoblio"
 include ':app', ':coqlib'
+// Pour un projet quelconque, il faut définir le chemin du module coqlib :
 // project(':coqlib').projectDir = new File("../coqlib_kt/coqlib/")
