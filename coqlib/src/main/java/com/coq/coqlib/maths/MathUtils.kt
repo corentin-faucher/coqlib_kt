@@ -5,8 +5,8 @@ package com.coq.coqlib.maths
 
 import android.util.Base64
 import java.nio.ByteBuffer
-import java.util.*
 import kotlin.math.*
+import kotlin.random.Random
 
 /** Vecteurs 2D */
 data class Vector2(var x: Float = 0.0f, var y: Float = 0.0f)
@@ -201,8 +201,9 @@ enum class Digits {
 fun Float.toNormalizedAngle()
         = this - ceil((this - PI.toFloat()) / (2f * PI.toFloat())) * 2f * PI.toFloat()
 
-fun Random.nextFloat(moy: Float, delta: Float)
-        = (this.nextFloat() - 0.5f) * 2f * delta + moy
+fun Float.Companion.random(moy: Float, delta: Float)
+    = (Random.nextFloat() - 0.5f) * 2f * delta + moy
+
 /*-- Extension de Int --*/
 fun UInt.getHighestDecimal() : Int {
     val highestDecimal = pow2numberOfDigit[getHighestBitIndex()]

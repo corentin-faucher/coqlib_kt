@@ -238,6 +238,7 @@ class SmoothPos : SmoothDimension {
     }
 }
 
+
 open class SmoothAngle : SmoothDimension {
     constructor(posInit: Float) : super(posInit)
     constructor(posInit: Float, lambda: Float) : super(posInit, lambda)

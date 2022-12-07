@@ -1,5 +1,3 @@
-@file:Suppress("SpellCheckingInspection")
-
 package com.coq.testcocoblio
 
 import com.coq.coqlib.*
@@ -20,7 +18,7 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
     }
 
     override fun getAppRoot(): AppRootBase {
-        printdebug("Création de la structure (AppRoot)")
+        printdebug("Création l'horloge  de la structure (AppRoot)")
         return AppRoot(this)
     }
 }
@@ -30,11 +28,7 @@ class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
     init {
         /** Y mettre : un écran de fond et un écran de "devant": */
         BackScreen(this)
-        FrontScreen(this).also {
-            /** Init des statics pour les Popover...
-             * (les popover s'affiche dans le "front" screen par défaut. */
-            PopMessage.initWith(it, Texture.getPng(RC.drawable.frame_mocha))
-        }
+        FrontScreen(this)
         /** Commencer dans un écran "FirstScreen" (voir plus bas pour FirstScreen...) */
         changeActiveScreenToNewOfClass(FirstScreen::class.java)
     }
@@ -68,6 +62,10 @@ class BackScreen(root: AppRoot) : Screen(root) {
 class FrontScreen(root: AppRoot) : Screen(root) {
     init {
         addFlags(Flag1.dontAlignScreenElements or Flag1.persistentScreen or Flag1.show)
+        /** Init des statics pour les Popover...
+         * (les popover s'affiche dans le "front" screen par défaut. */
+        PopMessage.initWith(this, Texture.getPng(RC.drawable.frame_mocha))
+        Sparkles.initWith(this)
     }
 }
 
@@ -173,13 +171,11 @@ class SliderTest : SliderButton
     constructor(ref: Node?, x: Float, y: Float, height: Float
     ) : super(ref, 0f, true, x, y, height, 4f*height)
     private constructor(other: SliderTest) : super(other)
-
-    override fun action() {
-        PopMessage.over(this, "Value is $value.")
-    }
-
     override fun clone() = SliderTest(this)
 
+    override fun action() {
+        Sparkles.over(this)
+    }
 }
 
 // Normalement on a pas besoin de reshaper les boutons...

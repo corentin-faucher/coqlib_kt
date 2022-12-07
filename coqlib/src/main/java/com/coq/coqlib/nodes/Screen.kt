@@ -63,28 +63,28 @@ abstract class Screen : Node
      * alignés horizontalement ou verticalement en fonction de l'orientation de l'appareil. */
     private fun alignScreenElements(isOpening:  Boolean) {
         val theParent = parent ?: run { printerror("Pas de parent."); return}
-        if (!containsAFlag(Flag1.dontAlignScreenElements)) {
-            val screenRatio = getScreenRatio()
-            var alignOpt = AlignOpt.setSecondaryToDefPos
-            if(!compactAlign)
-                alignOpt = alignOpt or AlignOpt.respectRatio
-            if (screenRatio < landscapePortraitThreshold)
-                alignOpt = alignOpt or AlignOpt.vertically
-            if (isOpening)
-                alignOpt = alignOpt or AlignOpt.fixPos
-
-            this.alignTheChildren(alignOpt, screenRatio)
-
-            val scale = min(
-                theParent.width.realPos/ width.realPos,
-                theParent.height.realPos / height.realPos)
-            scaleX.set(scale, isOpening)
-            scaleY.set(scale, isOpening)
-        } else {
+        // 1. Pas d'alignement, juste ajuster la taille avec la root.
+        if (containsAFlag(Flag1.dontAlignScreenElements)) {
             scaleX.set(1f, isOpening)
             scaleY.set(1f, isOpening)
             width.set(theParent.width.realPos, isOpening)
             height.set(theParent.height.realPos, isOpening)
+            return
         }
+        // 2. Aligner les élements (horizontalement ou verticalement)
+        val screenRatio = getScreenRatio()
+        var alignOpt = AlignOpt.setSecondaryToDefPos
+        if(!compactAlign)
+            alignOpt = alignOpt or AlignOpt.respectRatio
+        if (screenRatio < landscapePortraitThreshold)
+            alignOpt = alignOpt or AlignOpt.vertically
+        if (isOpening)
+            alignOpt = alignOpt or AlignOpt.fixPos
+        this.alignTheChildren(alignOpt, screenRatio)
+        val scale = min(
+            theParent.width.realPos/ width.realPos,
+            theParent.height.realPos / height.realPos)
+        scaleX.set(scale, isOpening)
+        scaleY.set(scale, isOpening)
     }
 }

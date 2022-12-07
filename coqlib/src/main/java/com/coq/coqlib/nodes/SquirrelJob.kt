@@ -46,7 +46,7 @@ fun Node.forEachRemoveFlags(flags: Long) {
     }
 }
 
-fun Node.forEachNodeInBranch(block: (Node)-> Void) {
+fun Node.forEachNodeInBranch(block: (Node)-> Unit) {
     block(this)
     val sq = Squirrel(firstChild ?: return)
     while (true) {
@@ -63,7 +63,14 @@ fun Node.forEachNodeInBranch(block: (Node)-> Void) {
     }
 }
 
-inline fun <reified T: Node> Node.forEachTypedNodeInBranch(block: (T)->Void) {
+fun Node.forEachChild(block: (Node) -> Unit) {
+    val sq = Squirrel(firstChild ?: return)
+    do {
+        block(sq.pos)
+    } while(sq.goRight())
+}
+
+inline fun <reified T: Node> Node.forEachTypedNodeInBranch(block: (T)->Unit) {
     (this as? T)?.let { block(it) }
     val sq = Squirrel(firstChild ?: return)
     while (true) {
@@ -80,7 +87,7 @@ inline fun <reified T: Node> Node.forEachTypedNodeInBranch(block: (T)->Void) {
     }
 }
 
-inline fun <reified T: Node> Node.forEachTypedChild(block: (T)->Void) {
+inline fun <reified T: Node> Node.forEachTypedChild(block: (T)->Unit) {
     val sq = Squirrel(firstChild ?: return)
     do {
         (sq.pos as? T)?.let { block(it) }
