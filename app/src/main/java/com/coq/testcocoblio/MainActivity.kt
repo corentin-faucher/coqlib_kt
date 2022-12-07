@@ -17,6 +17,12 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
         return null
     }
 
+    override fun getExtraSoundIds(): IntArray? {
+        // (pass)
+        // Si besoin ajouter les Ids de son supplémentaires (dans res/raw).
+        return null
+    }
+
     override fun getAppRoot(): AppRootBase {
         printdebug("Création l'horloge  de la structure (AppRoot)")
         return AppRoot(this)
