@@ -3,6 +3,7 @@ package com.coq.testcocoblio
 import com.coq.coqlib.*
 import com.coq.coqlib.graph.Icon
 import com.coq.coqlib.graph.Texture
+import com.coq.coqlib.graph.Texture.Tiling
 import com.coq.coqlib.graph.scheduleGL
 import com.coq.coqlib.nodes.*
 import com.coq.coqlib.R as RC
@@ -10,22 +11,41 @@ import java.util.*
 
 
 class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
-    override fun getExtraTextureTilings(): Map<Int, Texture.Tiling>? {
-        // (pass)
-        // Si besoin retourner la map des tiling des pngs du projets,
-        // voir Texture.kt -> tilingOfDrawableRes comme exemple.
-        return null
+    override fun getExtraTextureTilings(): Map<Int, Tiling> {
+        // Ici on ajoute le tiling des pngs du projet (dans res/drawable).
+        return mapOf(
+            R.drawable.country_flags to Tiling(8, 4),
+            R.drawable.digits_brown to Tiling(12, 2),
+            R.drawable.digits_green to Tiling(12, 2),
+            R.drawable.digits_red to Tiling(12, 2),
+            R.drawable.icons to Tiling(8, 4),
+            R.drawable.some_animals to Tiling(4, 7),
+        )
     }
 
-    override fun getExtraSoundIds(): IntArray? {
-        // (pass)
-        // Si besoin ajouter les Ids de son supplémentaires (dans res/raw).
-        return null
+    override fun getExtraSoundIds(): IntArray {
+        // Liste des Ids de son du projet (dans res/raw).
+        return intArrayOf(
+            R.raw.arpeggio,
+            R.raw.clap_clap,
+            R.raw.go_start,
+            R.raw.pouing_b,
+            R.raw.ready_set,
+            R.raw.sheep_bah,
+            R.raw.ship_horn,
+            R.raw.tac_tac,
+        )
     }
-
     override fun getAppRoot(): AppRootBase {
-        printdebug("Création l'horloge  de la structure (AppRoot)")
+        // Retourné la basse de la structure de l'app.
+        // (gardée par le renderer)
         return AppRoot(this)
+    }
+    override fun getNodeDrawingFunction(): (Node.() -> Surface?)? {
+        // pass, utiliser la fonction par défaut,
+        //  i.e. Renderer.kt -> Node.defaultSetNodeForDrawing.
+        // Voir Node.defaultSetNodeForDrawing comme exemple.
+        return null
     }
 }
 
@@ -33,8 +53,8 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
 class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
     init {
         /** Y mettre : un écran de fond et un écran de "devant": */
-        BackScreen(this)
-        FrontScreen(this)
+        Background(this)
+        Foreground(this)
         /** Commencer dans un écran "FirstScreen" (voir plus bas pour FirstScreen...) */
         changeActiveScreenToNewOfClass(FirstScreen::class.java)
     }
@@ -44,11 +64,13 @@ class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
 }
 
 /** Un écran de fond. Ici un simple pavage de textures. */
-class BackScreen(root: AppRoot) : Screen(root) {
+class Background(root: AppRoot) : Screen(root) {
     init {
         addFlags(Flag1.dontAlignScreenElements or Flag1.persistentScreen)
+        // Ici, on distingue les resources du module coqlib de celle du module app avec "RC"
+        // (voir imports).
         var id1 = RC.drawable.the_cat
-        var id2 = RC.drawable.some_animals
+        var id2 = R.drawable.some_animals
         for(i in 0 until 4) for(j in 0 until 8) {
             TiledSurface(this, id1,
                 -3.5f + 2f*i.toFloat(), -3.5f + j.toFloat(),
@@ -65,7 +87,7 @@ class BackScreen(root: AppRoot) : Screen(root) {
 
 /** Un écran "en avant" pour les effets de particules, pop over, curseur, ...
  * (vide à priori...) */
-class FrontScreen(root: AppRoot) : Screen(root) {
+class Foreground(root: AppRoot) : Screen(root) {
     init {
         addFlags(Flag1.dontAlignScreenElements or Flag1.persistentScreen or Flag1.show)
         /** Init des statics pour les Popover...
@@ -159,7 +181,7 @@ class SecondScreen(root: AppRoot) : Screen(root) {
                     )
                 }
             }
-            TiledSurface(this, Texture.getPng(RC.drawable.some_animals),
+            TiledSurface(this, Texture.getPng(R.drawable.some_animals),
                 0f, -0.5f, 0.85f, 0f)
         }
 

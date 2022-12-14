@@ -7,7 +7,7 @@ package com.coq.coqlib.nodes
 
 import com.coq.coqlib.maths.Vector2
 import com.coq.coqlib.printerror
-
+import com.coq.coqlib.printwarning
 
 
 /** Ajouter des flags à une branche (noeud et descendants s'il y en a). */
@@ -87,11 +87,28 @@ inline fun <reified T: Node> Node.forEachTypedNodeInBranch(block: (T)->Unit) {
     }
 }
 
-inline fun <reified T: Node> Node.forEachTypedChild(block: (T)->Unit) {
+inline fun <reified T: Node> Node.forEachTypedChild(block: (T) -> Unit) {
     val sq = Squirrel(firstChild ?: return)
     do {
         (sq.pos as? T)?.let { block(it) }
     } while(sq.goRight())
+}
+
+/** Genre de "zip" : itère sur les enfants direct et la liste simultanément. */
+inline fun <reified N: Node, E> Node.forEachTypedChildWithList(list: List<E>, block: (N, E) -> Unit) {
+    val sq = Squirrel(firstChild ?: return)
+    val it = list.listIterator()
+    do {
+        (sq.pos as? N)?.let { n ->
+            if (!it.hasNext()) {
+                printerror("Not enough element in list for all children.")
+                return
+            }
+            block(n, it.next())
+        }
+    } while(sq.goRight())
+    if(it.hasNext())
+        printwarning("Still got unused list elements.")
 }
 
 /** Retirer des flags à la loop de frère où se situe le noeud présent. */
@@ -143,7 +160,7 @@ fun Node.makeSelectable() {
 }
 
 /**  Pour chaque noeud :
- * 1. Applique open() pour les Openable,
+ * 1. Applique open(),
  * 2. ajoute "show" si non caché,
  * (show peut être ajouté manuellement avant pour afficher une branche cachée)
  * 3. visite si est une branche avec "show".

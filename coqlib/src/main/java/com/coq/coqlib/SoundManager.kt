@@ -70,22 +70,14 @@ object SoundManager {
         }
 
         soundPoolIdOfRawRes.clear()
-
         // 2. Chargement des sons de base
-        initSound(R.raw.arpeggio)
-        initSound(R.raw.clap_clap)
         initSound(R.raw.duck_error)
         initSound(R.raw.fireworks)
-        initSound(R.raw.go_start)
         initSound(R.raw.note_piano)
         initSound(R.raw.pouing_a)
-        initSound(R.raw.pouing_b)
-        initSound(R.raw.ready_set)
-        initSound(R.raw.sheep)
-        initSound(R.raw.ship_horn)
-        initSound(R.raw.tac_tac)
         initSound(R.raw.type_writter)
         initSound(R.raw.woosh)
+        // 2.1 Chargements des sons spécifiques au projet courant.
         extraSoundIds?.forEach { soundId ->
             initSound(soundId)
         }

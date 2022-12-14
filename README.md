@@ -5,7 +5,7 @@ Librairie pour petit projet Android avec OpenGL.
 ## Installation
 
 1. Installer Android Studio.
-2. Cloner dans le répertoire :
+2. Cloner le répertoire :
 ```bash
   $ git clone git@github.com:corentin-faucher/coqlib_kt.git coqlib
 ```

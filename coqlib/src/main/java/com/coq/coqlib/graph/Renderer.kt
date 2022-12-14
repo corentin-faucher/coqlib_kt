@@ -28,17 +28,21 @@ class Renderer(private val activity: CoqActivity,
     // (en fait, ça ne fait que préparer les "for instance uniforms" pour la frame courante).
     var setForDrawing : (Node.() -> Surface?) = Node::defaultSetNodeForDrawing
     private lateinit var root: AppRootBase
+    init {
+        activity.getNodeDrawingFunction()?.let { nodeDrawingFunction ->
+            setForDrawing = nodeDrawingFunction
+        }
+    }
 
     /*-- Méthodes devant être définies pour Renderer de GLSurfaceView. --*/
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        printhere()
         fun loadShader(type: Int, shaderResource: Int) : Int {
             val inputStream = activity.resources.openRawResource(shaderResource)
             val shaderCode = inputStream.bufferedReader().use { it.readText() }
             return GLES20.glCreateShader(type).also { shader ->
                 GLES20.glShaderSource(shader, shaderCode)
                 GLES20.glCompileShader(shader)
-                printdebug(GLES20.glGetShaderInfoLog(shader))
+//                printdebug(GLES20.glGetShaderInfoLog(shader))
             }
         }
         // 1. Création du program.
@@ -202,13 +206,13 @@ private fun Node.defaultSetNodeForDrawing() : Surface? {
         (this as RootNode).setModelMatrix()
         return null
     }
-    // 0.1 Copy du parent
+    // 1. Copy du parent
     val theParent = parent ?: run {
         printerror("Pas de parent pour noeud non root.")
         return null
     }
     System.arraycopy(theParent.piu.model, 0, piu.model, 0, 16)
-    // 1. Cas branche
+    // 2. Cas branche
     if (firstChild != null) {
         piu.model.translate(x.pos, y.pos, z.pos)
         piu.model.scale(scaleX.pos, scaleY.pos, 1f)
@@ -220,13 +224,15 @@ private fun Node.defaultSetNodeForDrawing() : Surface? {
     // Facteur d'"affichage"
     val alpha = trShow.setAndGet(containsAFlag(Flag1.show))
     piu.color[3] = alpha
-    // Rien à afficher...
+    // Sortir si rien à afficher...
     if (alpha == 0f) { return null }
+    // Ajuster la matrice model.
     piu.model.translate(x.pos, y.pos, z.pos)
     if (containsAFlag(Flag1.popping)) {
         piu.model.scale(width.pos * alpha, height.pos * alpha, 1f)
     } else {
         piu.model.scale(width.pos, height.pos, 1f)
     }
+    // Retourner la surface pour la dessiner.
     return this
 }

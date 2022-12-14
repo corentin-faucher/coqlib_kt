@@ -72,7 +72,7 @@ abstract class ButtonWithPopover : Button, HoverableWithPopover {
         popTimer = null
     }
     companion object {
-        @DrawableRes var defaultIconId: Int = R.drawable.icons
+        @DrawableRes var defaultIconId: Int = R.drawable.sparkle_stars
         @DrawableRes var defaultBackId: Int = R.drawable.disks
         var defaultBackTile: Int = Disk.Yellow.ordinal
         @DrawableRes var defaultPopFrameId: Int = R.drawable.frame_gray_back

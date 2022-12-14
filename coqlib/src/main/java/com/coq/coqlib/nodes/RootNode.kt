@@ -124,10 +124,6 @@ abstract class AppRootBase(internal val coqAct: CoqActivity) : RootNode(null, nu
 
     abstract fun willDrawFrame()
 
-//    fun queueToGLView(r: Runnable) {
-//        coqAct.view.queueEvent(r)
-//    }
-
     fun changeActiveScreen(newScreen: Screen?) {
         // 0. Cas "réouverture" de l'écran. ** Utile, superflu ?? **
         if(activeScreen === newScreen) {

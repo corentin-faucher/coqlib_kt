@@ -151,7 +151,8 @@ open class Node : Flagable, Cloneable {
     /*-----------------------------*/
     /*-- Effacement (discconnect) ---*/
     /** Se retire de sa chaine de frère et met les optionals à nil.
-     *  Sera effacé par l'ARC, si n'est pas référencié(swift) ou ramassé par le GC?(Kotlin) */
+     *  Sera effacé par l'ARC, si n'est pas référencié (swift)
+     *  ou ramassé par le Garbage Collector ? (Kotlin) */
     fun disconnect() {
         // 1. Retrait
         bigBro?.let{it.littleBro = littleBro} ?: run{parent?.firstChild = littleBro}
@@ -175,6 +176,12 @@ open class Node : Flagable, Cloneable {
         if(big) { bigBro?.disconnect() ?: return false }
         else    { littleBro?.disconnect() ?: return false }
         return true
+    }
+    /** Déconnexion rapide de la branche des descendants...
+     * (ne sera plus référencié -> sera ramassé par le garbage collector) */
+    fun disconnectAllChildren() {
+        firstChild = null
+        lastChild = null
     }
 
     /*-- Déplacements --*/

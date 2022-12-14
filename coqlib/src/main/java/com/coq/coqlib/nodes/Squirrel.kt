@@ -8,12 +8,12 @@ import kotlin.math.abs
 
 enum class ScaleInit {Ones, Scales, Deltas}
 
-class Squirrel(pos_: Node) {
+class Squirrel(pos: Node) {
     /*-- Données de bases et computed properties --*/
     /** Position dans l'arbre (noeud) de l'écureuil. */
     var pos: Node
         private set
-    private val root: Node
+    private var root: Node
     var x: Float
         private set
     var y: Float
@@ -33,12 +33,12 @@ class Squirrel(pos_: Node) {
 
     /*-- Constructeurs... --*/
     init {
-        pos = pos_
-        root = pos_
+        this.pos = pos
+        root = pos
         x = pos.x.realPos;  y = pos.y.realPos
-        sx = 1.0f;              sy = 1.0f
+        sx = 1.0f;          sy = 1.0f
     }
-    constructor(pos_: Node, scaleInit: ScaleInit) : this(pos_) {
+    constructor(pos: Node, scaleInit: ScaleInit) : this(pos) {
         when(scaleInit) {
             ScaleInit.Ones -> {sx = 1.0f; sy = 1.0f}
             ScaleInit.Scales -> {
@@ -51,9 +51,9 @@ class Squirrel(pos_: Node) {
     }
     /// Initialise avec une position relative au lieu de la position du noeud.
     /// La postion relative est dans le reférentiel de pos.parent (comme l'est la position du noeud).
-    constructor(pos_: Node, relPos: Vector2,
+    constructor(pos: Node, relPos: Vector2,
                 scaleInit: ScaleInit
-    ) : this(pos_) {
+    ) : this(pos) {
         x = relPos.x; y = relPos.y
         when(scaleInit) {
             ScaleInit.Ones -> {sx = 1.0f; sy = 1.0f}
@@ -64,6 +64,12 @@ class Squirrel(pos_: Node) {
                 sx = pos.deltaX; sy = pos.deltaY
             }
         }
+    }
+    fun placeAt(pos: Node) {
+        this.pos = pos
+        root = pos
+        x = pos.x.realPos;  y = pos.y.realPos
+        sx = 1.0f;          sy = 1.0f
     }
 
     /*--- Déplacements ----*/

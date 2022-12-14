@@ -18,9 +18,10 @@ import com.coq.coqlib.graph.Renderer
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.nodes.AppRootBase
 import com.coq.coqlib.nodes.Hoverable
+import com.coq.coqlib.nodes.Node
+import com.coq.coqlib.nodes.Surface
 import java.lang.ref.WeakReference
 import java.util.*
-import kotlin.concurrent.schedule
 
 abstract class CoqActivity(private val appThemeID: Int,
                            private val vertShaderID: Int?,
@@ -36,9 +37,9 @@ abstract class CoqActivity(private val appThemeID: Int,
     abstract fun getExtraTextureTilings() : Map<Int, Texture.Tiling>?
     abstract fun getExtraSoundIds() : IntArray?
     abstract fun getAppRoot() : AppRootBase
+    abstract fun getNodeDrawingFunction() : (Node.() -> Surface?)?
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        printhere()
         super.onCreate(savedInstanceState)
         // 1. Init des sons
         SoundManager.initWith(this, getExtraSoundIds())

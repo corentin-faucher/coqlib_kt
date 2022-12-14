@@ -50,7 +50,6 @@ class Sparkles : Node {
             texture = Texture.getPng(sparkleDrawableId)
             soundPoolId = SoundManager.getSoundPoolId(soundId)
         }
-
         operator fun invoke(
             x: Float, y: Float, height: Float,
             soundPoolId: Int? = null, @DrawableRes drawableId: Int? = null
@@ -64,9 +63,9 @@ class Sparkles : Node {
         operator fun invoke(soundPoolId: Int? = null, @DrawableRes drawableId: Int? = null
         ) : Sparkles
         {
-            val x = Float.random(0f, 0.5f * screen.width.realPos)
-            val y = Float.random(0f, 0.5f * screen.height.realPos)
-            val height = 0.15f * min(screen.width.realPos, screen.height.realPos)
+            val x = Float.random(0f, 0.45f * screen.width.realPos)
+            val y = Float.random(0f, 0.45f * screen.height.realPos)
+            val height = 0.30f * min(screen.width.realPos, screen.height.realPos)
             return Sparkles(x, y, height, soundPoolId, drawableId)
         }
 
@@ -77,7 +76,7 @@ class Sparkles : Node {
             val sq = Squirrel(ref, Vector2(ref.x.realPos, ref.y.realPos), ScaleInit.Deltas)
             @Suppress("ControlFlowWithEmptyBody")
             while(sq.goUpPS()) {}
-            val theHeight = height ?: min(sq.sy, sq.sx)
+            val theHeight = height ?: (min(sq.sy, sq.sx) * 2f)
             return Sparkles(
                 Float.random(sq.x, theHeight), Float.random(sq.y, theHeight),
                 theHeight, soundPoolId, drawableId)
