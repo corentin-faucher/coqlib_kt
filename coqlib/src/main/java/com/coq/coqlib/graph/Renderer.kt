@@ -21,18 +21,15 @@ import javax.microedition.khronos.opengles.GL10
 
 class Renderer(private val activity: CoqActivity,
                private val customVertShadResID: Int?,
-               private val customFragShadResID: Int?)
+               private val customFragShadResID: Int?,
+               setForDrawing: (Node.() -> Surface?)?
+)
     : GLSurfaceView.Renderer
 {
     // Fonction à utiliser pour dessiner un noeud (customizable)
     // (en fait, ça ne fait que préparer les "for instance uniforms" pour la frame courante).
-    var setForDrawing : (Node.() -> Surface?) = Node::defaultSetNodeForDrawing
+    private val setForDrawing : (Node.() -> Surface?) = setForDrawing ?: Node::defaultSetNodeForDrawing
     private lateinit var root: AppRootBase
-    init {
-        activity.getNodeDrawingFunction()?.let { nodeDrawingFunction ->
-            setForDrawing = nodeDrawingFunction
-        }
-    }
 
     /*-- Méthodes devant être définies pour Renderer de GLSurfaceView. --*/
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {

@@ -38,8 +38,9 @@ object SoundManager {
         val maxVolume = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ?: 1
         val currVolume = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: 0
         val usedVolume = max(1f, min(0f, volume)) * currVolume.toFloat() / maxVolume.toFloat()
-
-        soundPool?.play(soundPoolID, usedVolume, usedVolume, 1, 0, 2f.pow(pitch.toFloat()/12f))
+        val volume2 = 0.8f *( (1f - 0.10f)*usedVolume*usedVolume + 0.10f*usedVolume )
+//        printdebug("maxVol $maxVolume, currVolume $currVolume, usedVolume $usedVolume, adjusted $volume2")
+        soundPool?.play(soundPoolID, volume2, volume2, 1, 0, 2f.pow(pitch.toFloat()/12f))
     }
 
     fun playWithResId(@RawRes resID: Int, pitch: Short = 0, volume: Float = 1f) {

@@ -16,24 +16,24 @@ Librairie pour petit projet Android avec OpenGL.
 ## Nouveau projet utilisant coqlib
 
 1. Créer un nouveau projet Android Studio : File -> New -> New Project.
-2. Sélectionner : Empty Activity ; "My Application" ; language "kotlin" ; -> finish. (Laisser Gradle synchroniser...)
-3.1. Ajouter coqlib au projet : Gradle Scripts -> settings.gradle, à la fin du fichier modifier pour :
+2. Sélectionner : Empty Activity ; "My Application" ; language "kotlin" ; -> finish. Laisser Gradle synchroniser...
+3. Ajouter coqlib au projet : Gradle Scripts -> settings.gradle, à la fin du fichier modifier pour :
 ```
   include ':app', ':coqlib'
   // Mettre le chemin vers le module coqlib du projet coqlib.
   project(':coqlib').projectDir = new File("../coqlib/coqlib/")
 ```
-3.2. Ajouter aussi comme dépendance du module "app". Gradle Scripts -> build.gradle du module project_name.app, ajouter aux dependencies:
+4. Ajouter aussi comme dépendance du module "app". Gradle Scripts -> build.gradle du module project_name.app, ajouter aux dependencies:
 ```
   dependencies {
     implementation project(':coqlib')
     ...
   }
 ```
-3.3. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
+5. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
   Le module "coqlib" devrait maintentant apparaître dans "Project".
 
-4. Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
+6. Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
 ```html
   <manifest ...
   
@@ -44,7 +44,7 @@ Librairie pour petit projet Android avec OpenGL.
 
 ## Afficher une sprite OpenGL
 
-1. Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existante) :
+Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existante) :
   app -> java -> com...myapplication -> MainActivity.
 ```kotlin
   class MainActivity : CoqActivity(R.style.Theme_MyApplication, null, null)
@@ -52,16 +52,16 @@ Librairie pour petit projet Android avec OpenGL.
   }
 
 ```
-2. Implémenter les méthodes supplémentaires de CoqActivity.
+### Implémenter les méthodes supplémentaires de CoqActivity.
 
-2.1. getExtraTextureTilings : Méthode qui définie le nombre de tile m x n des pngs ajoutés dans res -> drawables. (On pass pour l'instant... Pas d'extra pngs.)
+1. getExtraTextureTilings : Méthode qui définie le nombre de tile m x n des pngs ajoutés dans res -> drawables. (On pass pour l'instant... Pas d'extra pngs.)
 ```kotlin
       override fun getExtraTextureTilings(): Map<Int, Texture.Tiling>? {
         // (pass)
         return null
     }
 ```
-2.2. getAppRoot : Méthode qui permet d'obtenir la structure de base à afficher.
+2. getAppRoot : Méthode qui permet d'obtenir la structure de base à afficher.
   Ici, on va juste créer une root "on the fly" avec une surface à afficher.
 ```kotlin
     override fun getAppRoot(): AppRootBase {

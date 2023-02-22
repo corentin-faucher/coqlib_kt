@@ -25,7 +25,8 @@ import java.util.*
 
 abstract class CoqActivity(private val appThemeID: Int,
                            private val vertShaderID: Int?,
-                           private val fragShaderID: Int?
+                           private val fragShaderID: Int?,
+                           private val setForDrawing: (Node.() -> Surface?)?
                            ) : AppCompatActivity()
 {
     private lateinit var renderer: Renderer
@@ -37,7 +38,6 @@ abstract class CoqActivity(private val appThemeID: Int,
     abstract fun getExtraTextureTilings() : Map<Int, Texture.Tiling>?
     abstract fun getExtraSoundIds() : IntArray?
     abstract fun getAppRoot() : AppRootBase
-    abstract fun getNodeDrawingFunction() : (Node.() -> Surface?)?
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +48,7 @@ abstract class CoqActivity(private val appThemeID: Int,
         view.setEGLContextClientVersion(2)
         view.preserveEGLContextOnPause = true
         // 3. Init du renderer : init aussi Texture, Mesh, Root.
-        renderer = Renderer(this, vertShaderID, fragShaderID)
+        renderer = Renderer(this, vertShaderID, fragShaderID, setForDrawing)
         view.setRenderer(renderer)
         setContentView(view)
         currentView = WeakReference(view)
