@@ -161,7 +161,7 @@ class Renderer(private val activity: CoqActivity,
         (scrollable as? Scrollable)?.scroll(deltaY)
     }
     /*-- Keyboard events --*/
-    internal fun onKeyDown(key: KeyboardKey) {
+    internal fun onKeyDown(key: KeyboardInput) {
         when(key.keycode) {
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER ->
                 (root.activeScreen as? Enterable)?.let { it.enterAction(); return }
@@ -170,7 +170,7 @@ class Renderer(private val activity: CoqActivity,
         }
         (root.activeScreen as? KeyResponder)?.keyDown(key)
     }
-    internal fun onKeyUp(key: KeyboardKey) {
+    internal fun onKeyUp(key: KeyboardInput) {
         (root.activeScreen as? KeyResponder)?.keyUp(key)
     }
 

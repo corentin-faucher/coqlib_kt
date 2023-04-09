@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import com.coq.coqlib.graph.Texture
 import java.io.IOException
 import java.lang.ref.WeakReference
+import java.util.*
 
 enum class Language(val iso: String) {
     French("fr"),
@@ -28,20 +29,25 @@ enum class Language(val iso: String) {
     companion object {
         fun initWith(coqActivity: CoqActivity) {
             coqAct = WeakReference(coqActivity)
-            val locales = coqActivity.resources.configuration.locales
-            val defaultIso: String = locales.get(0)?.language ?: "en"
-            current = languageOfIso[defaultIso] ?: English
-            coqActivity.setLocalizedContextTo(current.iso)
+            current = getSystemLanguage()
         }
-
+        fun getSystemLanguage(): Language {
+            val iso = coqAct.get()?.let {
+                it.resources.configuration.locales.get(0).language ?: "en"
+            } ?: run {
+                printerror("Language not init.")
+                return English
+            }
+            return languageOfIso[iso] ?: English
+        }
         var current: Language = English
             set(newLanguage) {
-                if(newLanguage == current)
-                    return
                 val coqActivity = coqAct.get() ?: run {
                     printerror("Language not init.")
                     return
                 }
+                if(coqActivity.localizedCtx != null && newLanguage == current)
+                    return
                 coqActivity.setLocalizedContextTo(newLanguage.iso)
                 Texture.updateAllLocalizedStrings()
                 field = newLanguage
@@ -53,6 +59,10 @@ enum class Language(val iso: String) {
                 = current == language
         val currentTileId: Int
             get() = current.ordinal
+        val currentIsRightToLeft: Boolean
+            get() = currentIs(Arabic)
+        val currentDirectionFactor: Float
+            get() = if(current == Arabic) -1f else 1f
         internal val currentCtx: Context?
             get() = coqAct.get()?.localizedCtx
 
@@ -88,6 +98,7 @@ enum class Language(val iso: String) {
         }
 
         private var coqAct: WeakReference<CoqActivity> = WeakReference(null)
+//        private var coqAct: CoqActivity? = null
         private val languageOfIso = mapOf(
             "fr" to  French,
             "en" to  English,

@@ -3,9 +3,12 @@
  * Corentin Faucher
  * 28 novembre 2022
  * */
+@file:Suppress("unused")
+
 package com.coq.coqlib
 
 import android.util.Log
+import java.io.IOException
 import java.lang.ref.WeakReference
 import kotlin.math.min
 
@@ -34,13 +37,15 @@ import kotlin.math.min
 //    }
 */
 
-fun printerror(message: String, depth: Int = 3) {
+/** Affichage d'un message d'erreur. */
+fun printerror(message: String, e: IOException? = null, depth: Int = 3) {
     val stes = Exception().stackTrace
+    val mes = message + (e?.localizedMessage?.let { ", $it" } ?: "")
     if (stes.size < 3) {
-        Log.e("🐔coq", "❌ Error: $message")
+        Log.e("🐔coq", "❌ Error: $mes")
         return
     }
-    var str = "❌ Error: $message  → ${stes[2]}"
+    var str = "❌ Error: $mes  → ${stes[2]}"
     val depth2 = min(stes.size, depth+1)
     for (index in 3..depth2) {
         val ste = stes[index]
@@ -108,3 +113,10 @@ fun <T> MutableList<WeakReference<T> >.strip() {
     this.removeIf { it.get() == null }
 }
 
+fun IntRange.toIntArray(): IntArray {
+    if(last < first) return IntArray(0)
+    val arr = IntArray(last - first + 1)
+    for((i, e) in this.withIndex())
+        arr[i] = e
+    return arr
+}

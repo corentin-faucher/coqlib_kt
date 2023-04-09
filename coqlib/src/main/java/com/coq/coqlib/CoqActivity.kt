@@ -109,7 +109,7 @@ abstract class CoqActivity(private val appThemeID: Int,
         if(event == null || event.repeatCount > 0)
             return super.onKeyDown(keyCode, event)
         with(view) { queueEvent {
-            renderer.onKeyDown(KeyData(event.scanCode, keyCode, event.metaState, false))
+            renderer.onKeyDown(KeyboardInputStruct(event.scanCode, keyCode, event.metaState, false))
         }}
         return if(keyCode == KeyEvent.KEYCODE_ESCAPE) true else super.onKeyDown(keyCode, event)
     }
@@ -117,7 +117,7 @@ abstract class CoqActivity(private val appThemeID: Int,
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         if(event == null) return super.onKeyUp(keyCode, null)
         with(view) { queueEvent {
-            renderer.onKeyUp(KeyData(event.scanCode, keyCode, event.metaState, false))
+            renderer.onKeyUp(KeyboardInputStruct(event.scanCode, keyCode, event.metaState, false))
         }}
         return super.onKeyUp(keyCode, event)
     }

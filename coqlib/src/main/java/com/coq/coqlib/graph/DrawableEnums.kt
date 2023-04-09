@@ -2,93 +2,36 @@
 
 package com.coq.coqlib.graph
 
+import com.coq.coqlib.R
+import com.coq.coqlib.nodes.Node
+import com.coq.coqlib.nodes.TiledSurface
+
 /** Les couleurs des disques disks.png. */
-enum class Disk {
+enum class DiskColor {
     Yellow,
     Green,
     Red,
     Blue,
+
     Orange,
     Purple,
     BlueSky,
     Pink,
+
     Black,
     White,
     Gray,
     BlackWhite,
+
     Beige;
 }
 
-/** Drapeaux de divers pays, voir country_flags.png.
- * (Pour language_flags.png, voir Language.kt...) */
-enum class CountryFlag {
-	Us,
-	Britain,
-	Canada,
-	France,
-	Belgium,
-	Spanish,
-	Italia,
-	German,
+fun Node.addColorDisk(x: Float, y: Float, height: Float, diskColor: DiskColor,
+                      lambda: Float = 0f, flags: Long = 0L, emph: Float = 0.25f
+) = TiledSurface(this, R.drawable.disks, x, y, height, lambda,
+        diskColor.ordinal, flags).also { piu.emph = emph }
 
-	Swiss,
-	Sweden,
-	Greece,
-	Japan,
-	China,
-	Arabic,
-	Australia,
-	Russia,
+fun TiledSurface.setToDiskColor(diskColor: DiskColor) {
+    this.updateTile(diskColor.ordinal, 0)
 
-	Korea,
-	Vietnam,
-	Portugal,
-	Brazil,
-    Turkey,
-    Belarus,
-    Bulgaria,
-    Kazakhstan,
-
-    Macedonian,
-    Mongolia,
-    Ukraine;
-}
-
-/** Petites icônes de bases pour les boutons, voir icons.png. */
-enum class Icon {
-    Menu,
-    Previous,
-    Next,
-    Play,
-    Pause,
-    Redo,
-    Fullscreen,
-    Windowed,
-
-    Ok,
-    Nope,
-    User,
-    UserAdd,
-    UserGray,
-    LogOut,
-    SoundOn,
-    SoundOff,
-
-    Options,
-    EmailContact,
-    SelectLanguage,
-    BuyCart,
-    Help,
-    Undefined,
-    Garbage,
-    Edit,
-
-    LessonsSet,
-    AddLessonsSet,
-    AddLesson,
-    Plot,
-    Stats,
-    Export,
-    Import,
-    CloudSync;
 }

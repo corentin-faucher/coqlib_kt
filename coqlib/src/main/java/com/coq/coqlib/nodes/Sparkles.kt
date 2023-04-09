@@ -16,14 +16,14 @@ class Sparkles : Node {
     private constructor(
         ref: Node,
         x: Float, y: Float, height: Float,
-        soundPoolId: Int, tex: Texture
+        soundPoolId: Int, @DrawableRes pngId: Int
     ) : super(ref, x, y, 1f, 1f)
     {
         scaleX.set(height)
         scaleY.set(height)
         val i0 = Random.nextInt() % 32
         for (i in 0..8) {
-            TiledSurface(this, tex,
+            TiledSurface(this, pngId,
                 Float.random(0f, 0.05f),
                 Float.random(0f, 0.05f), 0.3f,
                 5f, i + i0, Flag1.popping
@@ -47,7 +47,7 @@ class Sparkles : Node {
                      @DrawableRes sparkleDrawableId: Int = R.drawable.sparkle_stars)
         {
             screen = frontScreen
-            texture = Texture.getPng(sparkleDrawableId)
+            pngId = sparkleDrawableId
             soundPoolId = SoundManager.getSoundPoolId(soundId)
         }
         operator fun invoke(
@@ -56,8 +56,7 @@ class Sparkles : Node {
         ) : Sparkles
         {
             val spId = soundPoolId ?: Sparkles.soundPoolId
-            val tex = if(drawableId != null) Texture.getPng(drawableId) else texture
-            return Sparkles(screen, x, y, height, spId, tex)
+            return Sparkles(screen, x, y, height, spId, drawableId ?: pngId)
         }
 
         operator fun invoke(soundPoolId: Int? = null, @DrawableRes drawableId: Int? = null
@@ -83,7 +82,7 @@ class Sparkles : Node {
         }
 
         private lateinit var screen: Screen
-        private lateinit var texture: Texture
+        @DrawableRes private var pngId: Int = R.drawable.sparkle_stars
         private var soundPoolId: Int = 0
     }
 }

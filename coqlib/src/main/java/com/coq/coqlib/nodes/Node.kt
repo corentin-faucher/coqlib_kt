@@ -158,9 +158,9 @@ open class Node : Flagable, Cloneable {
         bigBro?.let{it.littleBro = littleBro} ?: run{parent?.firstChild = littleBro}
         littleBro?.let{it.bigBro = bigBro} ?: run{parent?.lastChild = bigBro}
         // 2. Déconnexion (superflu ?)
-//        parent = null
-//        littleBro = null
-//        bigBro = null
+        parent = null
+        littleBro = null
+        bigBro = null
     }
 
     /** Deconnexion d'un descendant, i.e. Effacement direct.

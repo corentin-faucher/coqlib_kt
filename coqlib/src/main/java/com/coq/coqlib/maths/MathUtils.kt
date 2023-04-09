@@ -56,6 +56,7 @@ fun Vector3.normalize() : Vector3 {
 }
 
 
+
 //println("Err in ${functionName}: ${message}")
 
 fun getIdentity() : FloatArray =
@@ -199,10 +200,20 @@ enum class Digits {
 
 /*-- Extension des Float --*/
 fun Float.toNormalizedAngle()
-        = this - ceil((this - PI.toFloat()) / (2f * PI.toFloat())) * 2f * PI.toFloat()
+    = this - ceil((this - PI.toFloat()) / (2f * PI.toFloat())) * 2f * PI.toFloat()
+
+fun Float.truncated(delta: Float)
+    = if(this > 0f) max(0f, this - delta)
+      else min(0f, this + delta)
 
 fun Float.Companion.random(moy: Float, delta: Float)
     = (Random.nextFloat() - 0.5f) * 2f * delta + moy
+
+fun Long.containsFlag(flag: Long)
+    = (this and flag) != 0L
+
+fun Int.containsFlag(flag: Int)
+    = (this and flag) != 0
 
 /*-- Extension de Int --*/
 fun UInt.getHighestDecimal() : Int {
@@ -254,7 +265,7 @@ fun IntArray.serialized() : String {
     // 2. Conversion en string.
     return Base64.encodeToString(byteArray, Base64.DEFAULT)
 }
-
+/** Convertir un arry de float en une String (avec Base64). */
 fun FloatArray.serialized() : String {
     // 1. Convertion en byteBuffer/byteArray.
     val byteBuffer = ByteBuffer.allocate(size * 4)
@@ -290,7 +301,6 @@ fun String.unserializedAsFloatArray() : FloatArray? {
     floatBuffer.get(floatArray)
     return floatArray
 }
-
 
 
 /** Retourne un nouvel array étant la version encodée avec la clef "key". */

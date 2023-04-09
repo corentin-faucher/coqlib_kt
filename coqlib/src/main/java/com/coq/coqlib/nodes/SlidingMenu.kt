@@ -261,22 +261,22 @@ private class SlidingMenuScrollBar : Node {
             printerror("No parent.")
             1f
         }
-        val backTex = Texture.getPng(R.drawable.scroll_bar_back)
-        val frontTex = Texture.getPng(R.drawable.scroll_bar_front)
+        val backId = R.drawable.scroll_bar_back
+        val frontId = R.drawable.scroll_bar_front
         // Back of scrollBar
-        TiledSurface(this, backTex,
+        TiledSurface(this, backId,
             0f, parHeight/2f - width/2f, width, 0f)
-        TiledSurface(this, backTex,
+        TiledSurface(this, backId,
             0f, 0f, width, parHeight - 2f*width, 0f, 1)
-        TiledSurface(this, backTex,
+        TiledSurface(this, backId,
             0f, -parHeight/2f + width/2f, width, 0f, 2)
         // Nub (sliding)
         nub = Node(this, 0f, parHeight/4, width, width*3f, 30f)
-        nubTop = TiledSurface(nub, frontTex,
+        nubTop = TiledSurface(nub, frontId,
             0f, width, width, 0f)
-        nubMid = TiledSurface(nub, frontTex,
+        nubMid = TiledSurface(nub, frontId,
             0f, 0f, width, 0f, 1)
-        nubBot = TiledSurface(nub, frontTex,
+        nubBot = TiledSurface(nub, frontId,
             0f, -width, width, 0f, 2)
     }
 

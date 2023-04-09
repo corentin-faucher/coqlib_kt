@@ -17,6 +17,24 @@ object SoundManager {
     private var audioManager: AudioManager? = null
     private val soundPoolIdOfRawRes = mutableMapOf<Int, Int>()
     private var ctx: WeakReference<Context> = WeakReference(null)
+    var volumes: FloatArray = FloatArray(16) { 1f }
+        private set
+
+    fun setVolume(newVolume: Float, id: Int) {
+        if(id >= volumes.size) {
+            printerror("Overflow volumeId $id.")
+            volumes[id] = max(0f, min(1f, newVolume))
+        }
+    }
+    fun setAllVolumes(newVolumes: FloatArray) {
+        val count = min(volumes.size, newVolumes.size)
+        for(i in 0 until count) {
+            volumes[i] = max(0f, min(1f, newVolumes[i]))
+        }
+    }
+    fun setAllVolumesToDefault() {
+        volumes = FloatArray(16) { 1f }
+    }
 
     fun initSound(@RawRes soundResId: Int) {
         if(soundPoolIdOfRawRes.containsKey(soundResId)) {
@@ -29,7 +47,6 @@ object SoundManager {
     fun getSoundPoolId(@RawRes soundResId: Int) : Int {
         return soundPoolIdOfRawRes[soundResId] ?: throw Exception("Son non chargé.")
     }
-
     fun play(soundPoolID: Int, pitch: Short = 0, volume: Float = 1f) {
         if (isMute) return
         if ( soundPoolID <0) {
@@ -47,6 +64,13 @@ object SoundManager {
         soundPoolIdOfRawRes[resID]?.let { soundPoolID ->
             play(soundPoolID, pitch, volume)
         } ?: run{ printerror("Son $resID non chargé.") }
+    }
+
+    fun playSound(@RawRes resId: Int, volId: Int, pitch: Short = 0, volume: Float = 1f) {
+        val vol = volume * volumes.getOrElse(volId) { 1f }
+        soundPoolIdOfRawRes[resId]?.let { soundPoolID ->
+            play(soundPoolID, pitch, vol)
+        } ?: run{ printerror("Son $resId non chargé.") }
     }
 
     internal fun initWith(ctx: Context, extraSoundIds: IntArray?) {

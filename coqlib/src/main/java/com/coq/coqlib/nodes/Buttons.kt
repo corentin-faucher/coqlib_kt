@@ -8,7 +8,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.coq.coqlib.*
 import com.coq.coqlib.graph.Color
-import com.coq.coqlib.graph.Disk
+import com.coq.coqlib.graph.DiskColor
 import com.coq.coqlib.maths.Vector2
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.graph.scheduleGL
@@ -74,7 +74,7 @@ abstract class ButtonWithPopover : Button, HoverableWithPopover {
     companion object {
         @DrawableRes var defaultIconId: Int = R.drawable.sparkle_stars
         @DrawableRes var defaultBackId: Int = R.drawable.disks
-        var defaultBackTile: Int = Disk.Yellow.ordinal
+        var defaultBackTile: Int = DiskColor.Yellow.ordinal
         @DrawableRes var defaultPopFrameId: Int = R.drawable.frame_gray_back
         var defaultPopInFront = false
     }
@@ -82,7 +82,7 @@ abstract class ButtonWithPopover : Button, HoverableWithPopover {
 
 abstract class SecureButton : Node, Draggable {
     private val holdTimeInSec: Float
-    private val diskTex: Texture
+    @DrawableRes private val diskPngId: Int
     private val diskI: Int
     private val failPopFrameTex: Texture
     private val failPopStrTex: Texture
@@ -90,13 +90,13 @@ abstract class SecureButton : Node, Draggable {
     private var actionTimer: Timer? = null
 
     constructor(ref: Node?,
-                holdTimeInSec: Float, diskTex: Texture, diskI: Int,
+                holdTimeInSec: Float, @DrawableRes diskPngId: Int, diskI: Int,
                 failPopStrTex: Texture, failPopFrameTex: Texture,
                 x: Float, y: Float, height: Float, lambda: Float, flags: Long
     ) : super(ref, x, y, height, height, lambda, flags)
     {
         this.holdTimeInSec = holdTimeInSec
-        this.diskTex = diskTex
+        this.diskPngId = diskPngId
         this.diskI = diskI
         this.failPopFrameTex = failPopFrameTex
         this.failPopStrTex = failPopStrTex
@@ -107,7 +107,7 @@ abstract class SecureButton : Node, Draggable {
     override fun grab(posInit: Vector2) {
         popDisk?.disconnect()
         val h = height.realPos
-        popDisk = PopDisk(this, diskTex, holdTimeInSec,
+        popDisk = PopDisk(this, diskPngId, holdTimeInSec,
             -0.5f*h, 0f, h, 10f, diskI)
         val newTimer = Timer()
         actionTimer = newTimer
@@ -130,7 +130,7 @@ abstract class SecureButton : Node, Draggable {
     }
     companion object {
         @DrawableRes var defaultDiskId: Int = R.drawable.disks
-        var defaultDiskTile: Int = Disk.Red.ordinal
+        var defaultDiskTile: Int = DiskColor.Red.ordinal
         @DrawableRes var defaultFailFrameId: Int = R.drawable.frame_red
         @StringRes var defaultFailPopStrId = R.string.hold_down
     }
@@ -145,10 +145,10 @@ abstract class SecureButtonWithPopover : SecureButton, HoverableWithPopover {
 
     constructor(ref: Node?,
                 popFrameTex: Texture, popInFront: Boolean,
-                holdTimeInSec: Float, diskTex: Texture, diskI: Int,
+                holdTimeInSec: Float, @DrawableRes diskPngId: Int, diskI: Int,
                 failPopStrTex: Texture, failPopFrameTex: Texture,
                 x: Float, y: Float, height: Float, lambda: Float, flags: Long
-    ) : super(ref, holdTimeInSec, diskTex, diskI, failPopStrTex, failPopFrameTex,
+    ) : super(ref, holdTimeInSec, diskPngId, diskI, failPopStrTex, failPopFrameTex,
         x, y, height, lambda, flags)
     {
         inFrontScreen = popInFront
@@ -167,7 +167,7 @@ abstract class SecureButtonWithPopover : SecureButton, HoverableWithPopover {
                 @StringRes failPopStrId: Int = defaultFailPopStrId
     ) : this(ref,
         Texture.getPng(popFrameId), popInFront,
-        holdTimeInSec, Texture.getPng(defaultDiskId), defaultDiskTile,
+        holdTimeInSec, defaultDiskId, defaultDiskTile,
         Texture.getLocalizedString(failPopStrId), Texture.getPng(defaultFailFrameId),
         x, y, height, lambda, flags)
     {
@@ -275,10 +275,10 @@ abstract class DummySwitchButton : Button {
     private fun initStructure() {
         TiledSurface( this, R.drawable.switch_back,
             0f, 0f, 1f, 0f
-        ).piu.color = Color.gray2
+        ).piu.color = Color.Gray2.getColor()
         TiledSurface(this, R.drawable.switch_front,
             0f, 0f, 1f, 10f
-        ).piu.color = Color.gray3
+        ).piu.color = Color.Gray3.getColor()
     }
 }
 

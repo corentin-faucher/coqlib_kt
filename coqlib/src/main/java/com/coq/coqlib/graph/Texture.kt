@@ -383,7 +383,7 @@ class Texture {
         private val allLocalizedStringTextures = mutableMapOf<Int, WeakReference<Texture> >()
         private val allPngTextures = mutableMapOf<Int, WeakReference<Texture> >()
         private val minisBitmaps = mutableMapOf<Int, Bitmap>()
-        private val defaultTiling = Tiling(1, 1)
+        val defaultTiling = Tiling(1, 1)
         /** Les pngs inclus par défaut avec coqlib. */
         private var tilingOfDrawableRes: MutableMap<Int, Tiling> = mutableMapOf(
             R.drawable.bar_gray to defaultTiling,

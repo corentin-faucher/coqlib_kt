@@ -25,9 +25,12 @@ open class Surface : Node {
     var tex: Texture
     var mesh: Mesh
     val trShow: SmTrans
+    val trExtra: SmTrans
     var x_margin: Float = 0f
 
-    /** Init comme une surface ordinaire avec texture directement. */
+    /** Init comme une surface ordinaire avec texture directement.
+     * Pour les surfaces, en général, la largeur dépend de la texture / string,
+     * on ne prend donc que la hauteur a priori. */
     constructor(refNode: Node?, tex: Texture,
                 x: Float, y: Float, height: Float,
                 lambda: Float, flags: Long = 0,
@@ -37,25 +40,40 @@ open class Surface : Node {
         this.tex = tex
         this.mesh = mesh
         trShow = SmTrans()
+        trExtra = SmTrans()
     }
     /** Init avec la largeur -> Inclue implicitement le flag Flag1.surfaceDontRespectRatio. */
-    constructor(refNode: Node?, tex: Texture,
-                x: Float, y: Float, width: Float, height: Float,
+//    constructor(refNode: Node?, tex: Texture,
+//                x: Float, y: Float, width: Float, height: Float,
+//                lambda: Float, flags: Long = 0,
+//                mesh: Mesh = Mesh.sprite,
+//                asParent: Boolean = true, asElderBigBro: Boolean = false
+//    ) : super(refNode, x, y, width, height,
+//        lambda, flags or Flag1.surfaceDontRespectRatio,
+//        asParent, asElderBigBro) {
+//        this.tex = tex
+//        this.mesh = mesh
+//        trShow = SmTrans()
+//        trExtra = SmTrans()
+//    }
+    constructor(refNode: Node?, @DrawableRes pngResId: Int,
+                x: Float, y: Float, height: Float,
                 lambda: Float, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : super(refNode, x, y, width, height,
-        lambda, flags or Flag1.surfaceDontRespectRatio,
-        asParent, asElderBigBro) {
-        this.tex = tex
+    ) : super(refNode, x, y, height, height, lambda, flags, asParent, asElderBigBro)
+    {
+        tex = Texture.getPng(pngResId)
         this.mesh = mesh
         trShow = SmTrans()
+        trExtra = SmTrans()
     }
     /** Constructeur de copie. */
     protected constructor(other: Surface) : super(other) {
         tex = other.tex  // (Ici, pas de copie, juste la référence vers la même texture...)
         mesh = other.mesh
         trShow = SmTrans(other.trShow)
+        trExtra = SmTrans(other.trExtra)
         x_margin = other.x_margin
     }
     override fun clone() = Surface(this)
@@ -172,47 +190,54 @@ class StringSurface: Surface
 }
 
 open class TiledSurface: Surface {
-    constructor(refNode: Node?, pngTex: Texture,
-                x: Float, y: Float, height: Float,
-                lambda: Float, i: Int = 0, flags: Long = 0,
-                mesh: Mesh = Mesh.sprite,
-                asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : super(refNode, pngTex,
-        x, y, height, lambda, flags,
-        mesh, asParent, asElderBigBro)
-    {
-        setWidth(true)
-        updateTile(i, 0)
-    }
-    constructor(refNode: Node?, pngTex: Texture,
-                x: Float, y: Float, width: Float, height: Float,
-                lambda: Float, i: Int = 0, flags: Long = 0,
-                mesh: Mesh = Mesh.sprite,
-                asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : super(refNode, pngTex,
-        x, y, width, height, lambda, flags,
-        mesh, asParent, asElderBigBro)
-    {
-        setWidth(true)
-        updateTile(i, 0)
-    }
-    /** Convenience init avec ressource id */
+//   Init avec texture, superflu ?
+//    constructor(refNode: Node?, pngTex: Texture,
+//                x: Float, y: Float, height: Float,
+//                lambda: Float, i: Int = 0, flags: Long = 0,
+//                mesh: Mesh = Mesh.sprite,
+//                asParent: Boolean = true, asElderBigBro: Boolean = false
+//    ) : super(refNode, pngTex,
+//        x, y, height, lambda, flags,
+//        mesh, asParent, asElderBigBro)
+//    {
+//        setWidth(true)
+//        updateTile(i, 0)
+//    }
+//    constructor(refNode: Node?, pngTex: Texture,
+//                x: Float, y: Float, width: Float, height: Float,
+//                lambda: Float, i: Int = 0, flags: Long = 0,
+//                mesh: Mesh = Mesh.sprite,
+//                asParent: Boolean = true, asElderBigBro: Boolean = false
+//    ) : super(refNode, pngTex,
+//        x, y, height, lambda, flags,
+//        mesh, asParent, asElderBigBro)
+//    {
+//        setWidth(true)
+//        updateTile(i, 0)
+//    }
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
                 lambda: Float, i: Int = 0, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : this(refNode, Texture.getPng(pngResId),
-        x, y, height, lambda, i, flags,
-        mesh, asParent, asElderBigBro)
+    ) : super(refNode, pngResId, x, y, height, lambda, flags, mesh, asParent, asElderBigBro) {
+        setWidth(true)
+        updateTile(i, 0)
+    }
+    /** Init avec largeur -> ajout du flag surfaceDontRespectRatio. */
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, width: Float, height: Float,
                 lambda: Float, i: Int = 0, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : this(refNode, Texture.getPng(pngResId),
-        x, y, width, height, lambda, i, flags,
+    ) : super(refNode, pngResId,
+        x, y, height, lambda, flags or Flag1.surfaceDontRespectRatio,
         mesh, asParent, asElderBigBro)
+    {
+        this.width.set(width)
+        // (pas de setWidth)
+        updateTile(i, 0)
+    }
     /** Copie... */
     protected constructor(other: TiledSurface) : super(other)
     override fun clone() = TiledSurface(this)
@@ -239,15 +264,18 @@ open class TiledSurface: Surface {
         }
         tex = newTexture
     }
+    fun updatePng(@DrawableRes pngResId: Int) {
+        tex = Texture.getPng(pngResId)
+    }
 }
 
 /** Surface avec une mesh "FanMesh" pour afficher une section de disque. */
 open class ProgressDisk: TiledSurface {
-    constructor(refNode: Node?, pngTex: Texture,
+    constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
                 lambda: Float = 0f, i: Int = 0, flags: Long = 0,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
-    ) : super(refNode, pngTex, x, y, height, lambda, i, flags,
+    ) : super(refNode, pngResId, x, y, height, lambda, i, flags,
         FanMesh(), asParent, asElderBigBro)
     /** Copie... */
     protected constructor(other: ProgressDisk) : super(other) {
@@ -360,20 +388,14 @@ class Frame : Surface {
     private val delta: Float
 
     constructor(parent: Node, framing: Framing, delta: Float,
-                tex: Texture,
+                @DrawableRes pngResId: Int,
                 lambda: Float = 0f, flags: Long = 0L
-    ) : super(
-        parent, tex, 0f, 0f, delta * 2f,
-        lambda, Flag1.surfaceDontRespectRatio or flags,
-        FrameMesh()
+    ) : super(parent, pngResId, 0f, 0f, delta * 2f, lambda,
+        Flag1.surfaceDontRespectRatio or flags, FrameMesh()
     ) {
         this.framing = framing
         this.delta = delta
     }
-    constructor(parent: Node, framing: Framing, delta: Float,
-                @DrawableRes pngResId: Int,
-                lambda: Float = 0f, flags: Long = 0L
-    ) : this(parent, framing, delta, Texture.getPng(pngResId), lambda, flags)
 
     /** Copie... */
     private constructor(other: Frame) : super(other) {

@@ -2,7 +2,7 @@
 
 package com.coq.coqlib.nodes
 
-import com.coq.coqlib.KeyboardKey
+import com.coq.coqlib.KeyboardInput
 import com.coq.coqlib.printerror
 import kotlin.math.min
 
@@ -17,8 +17,8 @@ interface Enterable {
 }
 
 interface KeyResponder {
-    fun keyDown(key: KeyboardKey)
-    fun keyUp(key: KeyboardKey)
+    fun keyDown(key: KeyboardInput)
+    fun keyUp(key: KeyboardInput)
     fun modifiersChangedTo(newModifiers: UInt)
 }
 

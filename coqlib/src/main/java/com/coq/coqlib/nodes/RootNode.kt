@@ -110,7 +110,7 @@ open class RootNode : Node {
     }
 }
 
-abstract class AppRootBase(internal val coqAct: CoqActivity) : RootNode(null, null)
+abstract class AppRootBase(val coqAct: CoqActivity) : RootNode(null, null)
 {
     var activeScreen: Screen? = null
         private set

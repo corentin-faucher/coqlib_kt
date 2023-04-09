@@ -4,6 +4,7 @@
 
 package com.coq.coqlib.nodes
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.coq.coqlib.*
 import com.coq.coqlib.graph.Texture
@@ -79,10 +80,12 @@ class PopMessage : Node
         }
         /** Convenience init pour les localized string. */
         operator fun invoke(
-            @StringRes locStrId: Int, frameTex: Texture? = null
+            @StringRes locStrId: Int, @DrawableRes frameResId: Int? = null
         ) : PopMessage
         {
-            return PopMessage(Texture.getLocalizedString(locStrId), frameTex,
+            val strTex = Texture.getLocalizedString(locStrId)
+            val frameTex = frameResId?.let {Texture.getPng(it)} ?: defaultFrameTexture
+            return PopMessage(strTex, frameTex,
                 0f, 0f, 1f, 0.2f,
                 Vector2(0f, -0.1f), Vector2(-0.5f, -0.5f), 2f)
         }
@@ -146,10 +149,10 @@ class PopDisk : ProgressDisk {
     private var chrono = Chrono()
     private val deltaT: Float
 
-    constructor(refNode: Node, pngTex: Texture, deltaT: Float,
-                x: Float, y: Float, height: Float,
+    constructor(refNode: Node, @DrawableRes pngResId: Int,
+                deltaT: Float, x: Float, y: Float, height: Float,
                 lambda: Float, i: Int, flags: Long = 0L
-    ) : super(refNode, pngTex, x, y, height, lambda, i, flags)
+    ) : super(refNode, pngResId, x, y, height, lambda, i, flags)
     {
         this.deltaT = deltaT
         start()
@@ -202,10 +205,10 @@ class PopDisk : ProgressDisk {
 
 /** Surface "TiledSurface" qui popover. Superflu ? */
 class PopSurface : TiledSurface {
-    private constructor(pngTex: Texture, time: Float,
+    private constructor(@DrawableRes pngResId: Int, time: Float,
                 x: Float, y: Float, height: Float,
                 lambda: Float = 0f, i: Int = 0, flags: Long = 0
-    ) : super(PopMessage.screen, pngTex, x, y, height, lambda, i, flags) {
+    ) : super(PopMessage.screen, pngResId, x, y, height, lambda, i, flags) {
         openAndShowBranch()
         Timer().scheduleGL((1000f*time).toLong()) {
             closeBranch()
@@ -216,7 +219,7 @@ class PopSurface : TiledSurface {
     }
     companion object {
         operator fun invoke(
-            overed: Node, pngTex: Texture, time: Float,
+            overed: Node, @DrawableRes pngResId: Int, time: Float,
             x_rel: Float, y_rel: Float, h_rel: Float,
             lambda: Float = 0f, i: Int = 0, flags: Long = 0
         ) : PopSurface
@@ -224,7 +227,7 @@ class PopSurface : TiledSurface {
             // Hauteur absolue du noeud ref sert pour la largeur.
             val (v, vS) = overed.positionAndDeltaAbsolute()
             val href = 2*vS.y
-            return PopSurface(pngTex, time,
+            return PopSurface(pngResId, time,
                 v.x + x_rel*href, v.y + y_rel*href, h_rel*href,
                 lambda, i, flags
             )
