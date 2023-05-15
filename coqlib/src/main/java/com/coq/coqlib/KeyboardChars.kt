@@ -21,14 +21,17 @@ object SpChar {
 //    const val dodo: Char = '🦤'
 }
 
-fun Char.isLatin(): Boolean
-    = this.code < 0x0250
+val Char.isLatin: Boolean
+    get() = this.code < 0x0250
 
-fun Char.isIdeogram(): Boolean
-    = this.code in 0x3400..0x9fff
+val Char.isIdeogram: Boolean
+    get() = this.code in 0x3400..0x9fff
+
+val Char.isNewLine: Boolean
+    get() = this == '\n' || this == '\r'
 
 fun Char.toNormalized(forceLower: Boolean): Char {
-    if(this == '\n' || this == '\r')
+    if(isNewLine)
         return SpChar.return_
     if (this == '、')
         return if(Language.currentIs(Language.Japanese)) ',' else '\\'
@@ -41,7 +44,7 @@ fun Char.toNormalized(forceLower: Boolean): Char {
 /** Version simplifié de toNormalized. (pas pour langue asiatique) */
 val Char.loweredAndNormalized: Char
     get() {
-        if(this == '\n' || this == '\r')
+        if(isNewLine)
             return SpChar.return_
         limitedNormalizedCharOf[this]?.let { return it }
 

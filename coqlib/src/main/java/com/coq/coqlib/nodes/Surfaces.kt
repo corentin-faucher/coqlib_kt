@@ -22,6 +22,7 @@ import kotlin.math.min
  * et une mesh (sprite par défaut).
  * Utilisez de préférence les sous-classes un peu plus bas... */
 open class Surface : Node {
+    // Fields pour Surface:
     var tex: Texture
     var mesh: Mesh
     val trShow: SmTrans
@@ -29,11 +30,11 @@ open class Surface : Node {
     var x_margin: Float = 0f
 
     /** Init comme une surface ordinaire avec texture directement.
-     * Pour les surfaces, en général, la largeur dépend de la texture / string,
-     * on ne prend donc que la hauteur a priori. */
+     * La surface est carrée.
+     * setWidth : Ajuste la largeur avec celle de la texture. */
     constructor(refNode: Node?, tex: Texture,
                 x: Float, y: Float, height: Float,
-                lambda: Float, flags: Long = 0,
+                lambda: Float = 0f, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
     ) : super(refNode, x, y, height, height, lambda, flags, asParent, asElderBigBro) {
@@ -42,32 +43,37 @@ open class Surface : Node {
         trShow = SmTrans()
         trExtra = SmTrans()
     }
-    /** Init avec la largeur -> Inclue implicitement le flag Flag1.surfaceDontRespectRatio. */
-//    constructor(refNode: Node?, tex: Texture,
-//                x: Float, y: Float, width: Float, height: Float,
-//                lambda: Float, flags: Long = 0,
-//                mesh: Mesh = Mesh.sprite,
-//                asParent: Boolean = true, asElderBigBro: Boolean = false
-//    ) : super(refNode, x, y, width, height,
-//        lambda, flags or Flag1.surfaceDontRespectRatio,
-//        asParent, asElderBigBro) {
-//        this.tex = tex
-//        this.mesh = mesh
-//        trShow = SmTrans()
-//        trExtra = SmTrans()
-//    }
+    /** Init comme une surface ordinaire avec texture directement.
+     * La surface est carrée.
+     * setWidth : Ajuste la largeur avec celle de la texture. */
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
-                lambda: Float, flags: Long = 0,
+                lambda: Float = 0f, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
     ) : super(refNode, x, y, height, height, lambda, flags, asParent, asElderBigBro)
     {
-        tex = Texture.getPng(pngResId)
+        this.tex = Texture.getPng(pngResId)
         this.mesh = mesh
         trShow = SmTrans()
         trExtra = SmTrans()
     }
+    /** White sprite. Modifiez piu.color pour changer la couleur.
+     * Init avec la largeur -> Inclue implicitement le flag Flag1.surfaceDontRespectRatio. */
+    constructor(refNode: Node?,
+                x: Float, y: Float, width: Float, height: Float,
+                lambda: Float = 0f, flags: Long = 0,
+                mesh: Mesh = Mesh.sprite,
+                asParent: Boolean = true, asElderBigBro: Boolean = false
+    ) : super(refNode, x, y, width, height, lambda, flags or Flag1.surfaceDontRespectRatio,
+        asParent, asElderBigBro)
+    {
+        tex = Texture.getPng(R.drawable.white)
+        this.mesh = mesh
+        trShow = SmTrans()
+        trExtra = SmTrans()
+    }
+
     /** Constructeur de copie. */
     protected constructor(other: Surface) : super(other) {
         tex = other.tex  // (Ici, pas de copie, juste la référence vers la même texture...)
@@ -217,7 +223,7 @@ open class TiledSurface: Surface {
 //    }
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
-                lambda: Float, i: Int = 0, flags: Long = 0,
+                lambda: Float = 0f, i: Int = 0, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
     ) : super(refNode, pngResId, x, y, height, lambda, flags, mesh, asParent, asElderBigBro) {
@@ -227,7 +233,7 @@ open class TiledSurface: Surface {
     /** Init avec largeur -> ajout du flag surfaceDontRespectRatio. */
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, width: Float, height: Float,
-                lambda: Float, i: Int = 0, flags: Long = 0,
+                lambda: Float = 0f, i: Int = 0, flags: Long = 0,
                 mesh: Mesh = Mesh.sprite,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
     ) : super(refNode, pngResId,
@@ -293,7 +299,7 @@ open class LanguageSurface : Surface {
     constructor(refNode: Node?,
                 @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
-                lambda: Float, flags: Long = 0,
+                lambda: Float = 0f, flags: Long = 0,
                 asParent: Boolean = true, asElderBigBro: Boolean = false
     ) : super(refNode, Texture.getPng(pngResId), x, y, height, lambda, flags, Mesh.sprite,
         asParent, asElderBigBro)
@@ -391,6 +397,15 @@ class Frame : Surface {
                 @DrawableRes pngResId: Int,
                 lambda: Float = 0f, flags: Long = 0L
     ) : super(parent, pngResId, 0f, 0f, delta * 2f, lambda,
+        Flag1.surfaceDontRespectRatio or flags, FrameMesh()
+    ) {
+        this.framing = framing
+        this.delta = delta
+    }
+    constructor(parent: Node, framing: Framing, delta: Float,
+                tex: Texture,
+                lambda: Float = 0f, flags: Long = 0L
+    ) : super(parent, tex, 0f, 0f, delta * 2f, lambda,
         Flag1.surfaceDontRespectRatio or flags, FrameMesh()
     ) {
         this.framing = framing

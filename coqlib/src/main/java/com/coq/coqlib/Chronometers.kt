@@ -57,8 +57,8 @@ object RenderingChrono {
     private var lastTime = AppChrono.systemTime
     private var touchTime: Long = 0L
     private var touchAngleMS: Long = 0L
-    private val sleepTime: Long = 16000L
-    private val angleLoopTime: Long = (60000.0 * PI).toLong()
+    private const val sleepTime: Long = 16000L
+    private const val angleLoopTime: Long = (60000.0 * PI).toLong()
 }
 
 /** Chronometre du temps écoulé depuis l'ouverture de l'app. (Vrais ms/sec écoulées) */

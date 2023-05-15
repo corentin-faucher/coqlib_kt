@@ -101,6 +101,8 @@ fun printhere(depth: Int = 1) {
     Log.i("🐔coq", str)
 }
 
+/*-- Extensions pratiques... --*/
+
 fun <K, T> MutableMap<K, WeakReference<T>>.strip() {
     forEach { (k, v) ->
         if(v.get() == null) {
@@ -112,6 +114,17 @@ fun <K, T> MutableMap<K, WeakReference<T>>.strip() {
 fun <T> MutableList<WeakReference<T> >.strip() {
     this.removeIf { it.get() == null }
 }
+
+/** Incrémenter le compteur d'un dictionnaire utlisé pour compter les frequences. */
+fun <K> MutableMap<K, Int>.incrCounterAt(key: K) {
+    get(key)?.let { count ->
+        put(key, count + 1)
+    } ?: run {
+        put(key, 1)
+    }
+}
+
+//fun <T> checkArraySize(array: Array
 
 fun IntRange.toIntArray(): IntArray {
     if(last < first) return IntArray(0)

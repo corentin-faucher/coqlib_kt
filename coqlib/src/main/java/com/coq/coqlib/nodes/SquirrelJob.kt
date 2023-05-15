@@ -191,6 +191,11 @@ fun Node.openAndShowBranch() {
         }
     }
 }
+fun Node.unhideAndTryToOpen() {
+    removeFlags(Flag1.hidden)
+    if(parent?.containsAFlag(Flag1.show) == true)
+        openAndShowBranch()
+}
 
 /** Enlever "show" aux noeud de la branche (sauf les alwaysShow) et appliquer la "closure". */
 fun Node.closeBranch() {
@@ -211,6 +216,12 @@ fun Node.closeBranch() {
             } else if (sq.pos === this) {return}
         }
     }
+}
+
+fun Node.hideAndTryToClose() {
+    addFlags(Flag1.hidden)
+    if(containsAFlag(Flag1.show))
+        closeBranch()
 }
 
 fun Node.reshapeBranch() {

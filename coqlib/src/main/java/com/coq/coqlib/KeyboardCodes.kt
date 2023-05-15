@@ -17,8 +17,10 @@ data class KeyboardInputStruct(
     override val isVirtual: Boolean
 ) : KeyboardInput
 
-/**--- Pour les MODIFIERS :  ---*/
-/**  -> KeyEvent.META_...    ---*/
+
+/**--- Pour les MOD / MODIFIERS :   ---*/
+/**  Utiliser -> KeyEvent.META_...  ---*/
+
 
 /** MyKeyCode... */
 object MKC {

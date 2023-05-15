@@ -1,7 +1,6 @@
 package com.coq.testcocoblio
 
 import com.coq.coqlib.*
-import com.coq.coqlib.graph.Icon
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.graph.Texture.Tiling
 import com.coq.coqlib.graph.scheduleGL
@@ -10,7 +9,9 @@ import com.coq.coqlib.R as RC
 import java.util.*
 
 
-class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
+class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
+    null, null, null)
+{
     override fun getExtraTextureTilings(): Map<Int, Tiling> {
         // Ici on ajoute le tiling des pngs du projet (dans res/drawable).
         return mapOf(
@@ -23,29 +24,22 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio, null, null) {
         )
     }
 
-    override fun getExtraSoundIds(): IntArray {
-        // Liste des Ids de son du projet (dans res/raw).
-        return intArrayOf(
-            R.raw.arpeggio,
-            R.raw.clap_clap,
-            R.raw.go_start,
-            R.raw.pouing_b,
-            R.raw.ready_set,
-            R.raw.sheep_bah,
-            R.raw.ship_horn,
-            R.raw.tac_tac,
+    override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>>? {
+        return arrayOf(
+            R.raw.arpeggio to 0,
+            R.raw.clap_clap to 0,
+            R.raw.go_start to 0,
+            R.raw.pouing_b to 0,
+            R.raw.ready_set to 0,
+            R.raw.sheep_bah to 0,
+            R.raw.ship_horn to 0,
+            R.raw.tac_tac to 0,
         )
     }
     override fun getAppRoot(): AppRootBase {
         // Retourné la basse de la structure de l'app.
         // (gardée par le renderer)
         return AppRoot(this)
-    }
-    override fun getNodeDrawingFunction(): (Node.() -> Surface?)? {
-        // pass, utiliser la fonction par défaut,
-        //  i.e. Renderer.kt -> Node.defaultSetNodeForDrawing.
-        // Voir Node.defaultSetNodeForDrawing comme exemple.
-        return null
     }
 }
 
@@ -181,7 +175,7 @@ class SecondScreen(root: AppRoot) : Screen(root) {
                     )
                 }
             }
-            TiledSurface(this, Texture.getPng(R.drawable.some_animals),
+            TiledSurface(this, R.drawable.some_animals,
                 0f, -0.5f, 0.85f, 0f)
         }
 
@@ -227,7 +221,7 @@ class ChangeLanguageButton(
 
 class TestButton(ref: Node, private val root: AppRoot, x: Float, y: Float, height: Float,
                  private val doAction: AppRoot.() -> Unit
-) : SecureButtonWithPopover(ref, Icon.Help.ordinal, R.string.button,
+) : SecureButtonWithPopover(ref,  5, R.string.button,
     x, y, height, 0f, 0L)
 {
     override fun action() {

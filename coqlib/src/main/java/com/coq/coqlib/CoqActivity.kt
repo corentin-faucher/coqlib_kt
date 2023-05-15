@@ -36,13 +36,13 @@ abstract class CoqActivity(private val appThemeID: Int,
     internal var localizedCtx: Context? = null
 
     abstract fun getExtraTextureTilings() : Map<Int, Texture.Tiling>?
-    abstract fun getExtraSoundIds() : IntArray?
+    abstract fun getExtraSoundIdsWithVolumeIds() : Array<Pair<Int, Int>>?
     abstract fun getAppRoot() : AppRootBase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 1. Init des sons
-        SoundManager.initWith(this, getExtraSoundIds())
+        SoundManager.initWith(this, getExtraSoundIdsWithVolumeIds())
         // 2. Init view OpenGL
         view = GLSurfaceView(this)
         view.setEGLContextClientVersion(2)

@@ -32,7 +32,7 @@ class Sparkles : Node {
                 surf.y.pos = Float.random(0f, 0.6f)
             }
         }
-        SoundManager.play(soundPoolId)
+        SoundManager.playWithSoundPoolId(soundPoolId)
         openAndShowBranch()
         Timer().scheduleGL(0.6f) {
             closeBranch()

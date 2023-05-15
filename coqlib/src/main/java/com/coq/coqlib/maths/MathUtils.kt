@@ -255,16 +255,32 @@ private val pow2numberOfDigit = intArrayOf(
     9, 9, 9
 )
 
-/** Convertie l'array de int en une String (avec Base64). */
-fun IntArray.serialized() : String {
-    // 1. Convertion en byteBuffer/byteArray.
+fun IntArray.toByteArray() : ByteArray {
     val byteBuffer = ByteBuffer.allocate(size * 4)
     val intBuffer = byteBuffer.asIntBuffer()
     intBuffer.put(this)
-    val byteArray = byteBuffer.array()
-    // 2. Conversion en string.
-    return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    return byteBuffer.array()
 }
+/** Convertie l'array de int en une String (avec Base64). */
+fun IntArray.serialized() : String {
+    return Base64.encodeToString(toByteArray(), Base64.DEFAULT)
+}
+fun ByteArray.toIntArray() : IntArray {
+    val byteBuffer = ByteBuffer.wrap(this)
+    val intBuffer = byteBuffer.asIntBuffer()
+    val intArray = IntArray(intBuffer.capacity())
+    intBuffer.get(intArray) // Ici "get" est : get from intBuffer et put to intArray...
+    return intArray
+}
+
+/** Reconvertie une string en array de int. */
+fun String.unserialized() : IntArray? {
+    if(isEmpty())
+        return null
+    val byteArray = Base64.decode(this, Base64.DEFAULT)
+    return byteArray.toIntArray()
+}
+
 /** Convertir un arry de float en une String (avec Base64). */
 fun FloatArray.serialized() : String {
     // 1. Convertion en byteBuffer/byteArray.
@@ -275,20 +291,6 @@ fun FloatArray.serialized() : String {
     // 2. Conversion en string.
     return Base64.encodeToString(byteArray, Base64.DEFAULT)
 }
-
-/** Reconvertie une string en array de int. */
-fun String.unserialized() : IntArray? {
-    if(isEmpty())
-        return null
-    val byteArray = Base64.decode(this, Base64.DEFAULT)
-    val byteBuffer = ByteBuffer.wrap(byteArray)
-    // 2. Remettre dans un intArray
-    val intBuffer = byteBuffer.asIntBuffer()
-    val intArray = IntArray(intBuffer.capacity())
-    intBuffer.get(intArray)
-    return intArray
-}
-
 /** Reconvertie une string en array de int. */
 fun String.unserializedAsFloatArray() : FloatArray? {
     if(isEmpty())

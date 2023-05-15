@@ -52,9 +52,11 @@ enum class Language(val iso: String) {
                 Texture.updateAllLocalizedStrings()
                 field = newLanguage
             }
-        fun setCurrentTo(iso: String) {
+        fun setCurrentToIso(iso: String) {
             current = languageOfIso[iso] ?: English
         }
+        fun getLanguageOfIso(iso: String) : Language
+            = languageOfIso[iso] ?: English
         fun currentIs(language: Language) : Boolean
                 = current == language
         val currentTileId: Int

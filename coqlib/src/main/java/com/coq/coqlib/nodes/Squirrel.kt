@@ -73,13 +73,14 @@ class Squirrel(pos: Node) {
     }
 
     /*--- Déplacements ----*/
-    /** Déconnecte où on est et va au petit (pas défaut) frère.
+    /** Déconnecte où on est et va au petit frère (par défaut).
      * Si ne peut aller au frère, va au parent.
+     * Retourne true s'il y a un frère où aller, false si on doit aller au parent.
      * Throw une erreur si ne peut aller au parent. */
     fun disconnectAndGoToBroOrUp(little: Boolean = true) : Boolean {
-        (if(little) pos.littleBro else pos.bigBro)?.let {
+        (if(little) pos.littleBro else pos.bigBro)?.let { bro ->
             val toDelete = pos
-            pos = it
+            pos = bro
             toDelete.disconnect()
             return true
         }
