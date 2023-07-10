@@ -30,10 +30,15 @@ Librairie pour petit projet Android avec OpenGL.
     ...
   }
 ```
-5. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
+5. Vérifier aussi que les minSdk et targetSdk sont les même que le module coqlib dans android -> defaultConfig :
+```
+    minSdk 26
+    targetSdk 33
+```
+6. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
   Le module "coqlib" devrait maintentant apparaître dans "Project".
 
-6. Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
+7. Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
 ```html
   <manifest ...
   
@@ -47,7 +52,7 @@ Librairie pour petit projet Android avec OpenGL.
 Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existante) :
   app -> java -> com...myapplication -> MainActivity.
 ```kotlin
-  class MainActivity : CoqActivity(R.style.Theme_MyApplication, null, null)
+  class MainActivity : CoqActivity(R.style.Theme_MyApplication, null, null, null)
   {
   }
 
@@ -56,12 +61,19 @@ Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existant
 
 1. getExtraTextureTilings : Méthode qui définie le nombre de tile m x n des pngs ajoutés dans res -> drawables. (On pass pour l'instant... Pas d'extra pngs.)
 ```kotlin
-      override fun getExtraTextureTilings(): Map<Int, Texture.Tiling>? {
+    override fun getExtraTextureTilings(): Map<Int, Texture.Tiling>? {
         // (pass)
         return null
     }
 ```
-2. getAppRoot : Méthode qui permet d'obtenir la structure de base à afficher.
+2. getExtraSoundIdsWithVolumeIds : Méthode qui définie les sons supplémentaires à charger par le SoundManager  (wav dans R.raw).
+```kotlin
+   override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>>? {
+        // pass...
+        return null
+    }
+```
+3. getAppRoot : Méthode qui permet d'obtenir la structure de base à afficher.
   Ici, on va juste créer une root "on the fly" avec une surface à afficher.
 ```kotlin
     override fun getAppRoot(): AppRootBase {
@@ -74,11 +86,14 @@ Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existant
             override fun willDrawFrame() {
                 // (pass, action sur la structure exécutée à chaque frame)
             }
+            override fun didResume(sleepingTimeSec: Float) {
+                // pass, action lorsque l'on sort de veille.
+            }
         }
     }
 
 ```
-Ici, on a importé le png "the_cat.png" des drawable de coqlib avec l'import: 
+Ici, on a importé le png "the_cat.png" des drawable de coqlib en ajoutant l'import: 
 `import com.coq.coqlib.R.drawable as drawable`.
 
 Pour plus d'exemples, voir le module coqlib -> app.
