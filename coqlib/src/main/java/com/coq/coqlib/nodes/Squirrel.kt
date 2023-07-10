@@ -3,6 +3,7 @@
 package com.coq.coqlib.nodes
 
 import com.coq.coqlib.maths.Vector2
+import com.coq.coqlib.printdebug
 import com.coq.coqlib.printerror
 import kotlin.math.abs
 
@@ -35,6 +36,7 @@ class Squirrel(pos: Node) {
     init {
         this.pos = pos
         root = pos
+        // Position dans le réf de pos.parent
         x = pos.x.realPos;  y = pos.y.realPos
         sx = 1.0f;          sy = 1.0f
     }
@@ -50,11 +52,13 @@ class Squirrel(pos: Node) {
         }
     }
     /// Initialise avec une position relative au lieu de la position du noeud.
-    /// La postion relative est dans le reférentiel de pos.parent (comme l'est la position du noeud).
+    /// La postion relative est relative à pos (dans le reférentiel de pos), i.e. delta par raport à pos.
     constructor(pos: Node, relPos: Vector2,
                 scaleInit: ScaleInit
     ) : this(pos) {
-        x = relPos.x; y = relPos.y
+        // Position initial de squirrel dans le ref de pos.parent. (up de relPos)
+        x = relPos.x * pos.scaleX.realPos + pos.x.realPos
+        y = relPos.y * pos.scaleY.realPos + pos.y.realPos
         when(scaleInit) {
             ScaleInit.Ones -> {sx = 1.0f; sy = 1.0f}
             ScaleInit.Scales -> {

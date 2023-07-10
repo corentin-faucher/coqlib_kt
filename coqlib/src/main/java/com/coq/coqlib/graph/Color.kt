@@ -20,6 +20,7 @@ enum class Color(private val arr: FloatArray) {
     RedCoquelicot(floatArrayOf(1f, 0.2f, 0f, 1f)),
     RedOrange2(floatArrayOf(1f, 0.4f, 0.4f, 1f)),
     RedCoral(floatArrayOf(1f, 0.5f, 0.3f, 1f)),
+    RedDark(floatArrayOf(0.2f, 0.1f, 0.1f, 1f)),
     Orange(floatArrayOf(1f, 0.6f, 0f, 1f)),
     OrangeAmber(floatArrayOf(1f, 0.5f, 0f, 1f)),
     OrangeBronze(floatArrayOf(0.8f, 0.5f, 0.2f, 1f)),
@@ -40,6 +41,7 @@ enum class Color(private val arr: FloatArray) {
     Blue(floatArrayOf(0f, 0.25f, 1f, 1f)),
     BlueSky(floatArrayOf(0.40f, 0.70f, 1f, 1f)),
     BlueSky2(floatArrayOf(0.55f, 0.77f, 1f, 1f)),
+    BluePale(floatArrayOf(0.8f, 0.9f, 1f, 1f)),
     BlueAzure(floatArrayOf(0.00f, 0.50f, 1f, 1f)),
     Purple(floatArrayOf(0.8f, 0f, 0.8f, 1f)),
     PurbleChinaPink(floatArrayOf(0.87f, 0.44f, 0.63f, 1f)),
@@ -47,7 +49,36 @@ enum class Color(private val arr: FloatArray) {
     PurbleBlueViolet(floatArrayOf(0.54f, 0.17f, 0.89f, 1f));
 
     fun getColor() = arr.copyOf()
+    fun blendedWith(other: Color, alpha: Float)
+        = floatArrayOf(
+        (1f-alpha)*other.arr[0] + alpha*arr[0],
+        (1f-alpha)*other.arr[1] + alpha*arr[1],
+        (1f-alpha)*other.arr[2] + alpha*arr[2],
+        (1f-alpha)*other.arr[3] + alpha*arr[3],
+    )
 }
+
+fun Float.toColor() : FloatArray
+    = when {
+        this < 0.0f -> Color.BluePale.getColor()
+        this < 0.3f -> {
+            val alpha = this / 0.3f
+            Color.GreenSpring.blendedWith(Color.BluePale, alpha)
+        }
+        this < 0.5f -> {
+            val alpha = (this - 0.3f) / 0.2f
+            Color.YellowCadmium.blendedWith(Color.GreenSpring, alpha)
+        }
+        this < 0.8f -> {
+            val alpha = (this - 0.5f) / 0.3f
+            Color.Red.blendedWith(Color.YellowCadmium, alpha)
+        }
+        this < 1.0f -> {
+            val alpha = (this - 0.8f) / 0.2f
+            Color.RedDark.blendedWith(Color.Red, alpha)
+        }
+        else -> Color.RedDark.getColor()
+    }
 
 fun FloatArray.toGray(level: Float, alpha: Float) : FloatArray
     = floatArrayOf(

@@ -30,8 +30,8 @@ open class Surface : Node {
     var x_margin: Float = 0f
 
     /** Init comme une surface ordinaire avec texture directement.
-     * La surface est carrée.
-     * setWidth : Ajuste la largeur avec celle de la texture. */
+     * La surface est carrée par défaut.
+     * Pour une sprite ordinaire, utiliser TiledSurface. */
     constructor(refNode: Node?, tex: Texture,
                 x: Float, y: Float, height: Float,
                 lambda: Float = 0f, flags: Long = 0,
@@ -43,9 +43,9 @@ open class Surface : Node {
         trShow = SmTrans()
         trExtra = SmTrans()
     }
-    /** Init comme une surface ordinaire avec texture directement.
-     * La surface est carrée.
-     * setWidth : Ajuste la largeur avec celle de la texture. */
+    /** Init comme une surface ordinaire avec id de texture.
+     * La surface est carrée par défaut.
+     * Pour une sprite ordinaire, utiliser TiledSurface. */
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
                 lambda: Float = 0f, flags: Long = 0,
@@ -195,32 +195,20 @@ class StringSurface: Surface
     }
 }
 
+/** Cas standard pour les surfaces. Init avec les proportions du png. */
 open class TiledSurface: Surface {
-//   Init avec texture, superflu ?
-//    constructor(refNode: Node?, pngTex: Texture,
-//                x: Float, y: Float, height: Float,
-//                lambda: Float, i: Int = 0, flags: Long = 0,
-//                mesh: Mesh = Mesh.sprite,
-//                asParent: Boolean = true, asElderBigBro: Boolean = false
-//    ) : super(refNode, pngTex,
-//        x, y, height, lambda, flags,
-//        mesh, asParent, asElderBigBro)
-//    {
-//        setWidth(true)
-//        updateTile(i, 0)
-//    }
-//    constructor(refNode: Node?, pngTex: Texture,
-//                x: Float, y: Float, width: Float, height: Float,
-//                lambda: Float, i: Int = 0, flags: Long = 0,
-//                mesh: Mesh = Mesh.sprite,
-//                asParent: Boolean = true, asElderBigBro: Boolean = false
-//    ) : super(refNode, pngTex,
-//        x, y, height, lambda, flags,
-//        mesh, asParent, asElderBigBro)
-//    {
-//        setWidth(true)
-//        updateTile(i, 0)
-//    }
+    constructor(refNode: Node?, pngTex: Texture,
+                x: Float, y: Float, height: Float,
+                lambda: Float, i: Int = 0, flags: Long = 0,
+                mesh: Mesh = Mesh.sprite,
+                asParent: Boolean = true, asElderBigBro: Boolean = false
+    ) : super(refNode, pngTex,
+        x, y, height, lambda, flags,
+        mesh, asParent, asElderBigBro)
+    {
+        setWidth(true)
+        updateTile(i, 0)
+    }
     constructor(refNode: Node?, @DrawableRes pngResId: Int,
                 x: Float, y: Float, height: Float,
                 lambda: Float = 0f, i: Int = 0, flags: Long = 0,
@@ -270,6 +258,7 @@ open class TiledSurface: Surface {
         }
         tex = newTexture
     }
+    /** Ne change que la texture (pas de updateRatio). */
     fun updatePng(@DrawableRes pngResId: Int) {
         tex = Texture.getPng(pngResId)
     }
@@ -437,7 +426,7 @@ class Frame : Surface {
             }
     }
 
-    internal fun addLittleBroString(strTex: Texture, framedWidth: Float, framedHeight: Float)
+    fun addLittleBroString(strTex: Texture, framedWidth: Float, framedHeight: Float)
     : StringSurface {
         if(framedHeight < 3 * delta || framedWidth < 3 * delta)
             printwarning("Frame too small.", 2)
@@ -449,7 +438,7 @@ class Frame : Surface {
             string.x_margin = 0.7f
         }
     }
-    internal fun updateWithLittleBro(fix: Boolean) {
+    fun updateWithLittleBro(fix: Boolean) {
         littleBro?.let { bro ->
             x.set(bro.x.realPos, fix)
             y.set(bro.y.realPos, fix)
@@ -457,7 +446,9 @@ class Frame : Surface {
         }
     }
 
-    private fun update(width: Float, height: Float, fix: Boolean) {
+    /** Pour setter width et height du frame. En général ce n'est pas nécessaire,
+     * le frame est ajuster avec sont parent ou petit frère... */
+    fun update(width: Float, height: Float, fix: Boolean) {
         if (width < 0 || height < 0) {
             printerror("width or height < 0")
             return

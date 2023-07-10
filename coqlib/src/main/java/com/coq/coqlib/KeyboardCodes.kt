@@ -3,23 +3,23 @@
 package com.coq.coqlib
 
 /** KeyboardKey peut être lié à un noeud-bouton-"touche" ou simplement un event du clavier. */
+/**--- Pour les MOD / MODIFIERS :   ---*/
+/**  Utiliser -> KeyEvent.META_...  ---*/
 interface KeyboardInput {
-    val scancode: Int
-    val keycode: Int
-    val keymod: Int
+    val scancode: Int  // Bonne référence pour les touches du clavier. (Équivalent de keycode dans macOS)
+    val _keycode: Int  // Keycode à éviter dans Android... Dépend du layout :(
+    val keymod: Int    // Flags KeyEvent.META_...
     val isVirtual: Boolean
 }
 
 data class KeyboardInputStruct(
     override val scancode: Int,
-    override val keycode: Int,
+    override val _keycode: Int,
     override val keymod: Int,
     override val isVirtual: Boolean
 ) : KeyboardInput
 
 
-/**--- Pour les MOD / MODIFIERS :   ---*/
-/**  Utiliser -> KeyEvent.META_...  ---*/
 
 
 /** MyKeyCode... */
@@ -35,18 +35,19 @@ object MKC {
     const val control = 61
     const val shift = 62
     const val option = 63
-    const val command = 64
+    const val command = 64    // (pas utilisé dans android)
     const val rightControl = 65
     const val rightShift = 66
     const val rightOption = 67
-    const val rightCommand = 68
+    const val rightCommand = 68  // (pas utilisé dans android)
     // Autre Keycodes Spéciaux
     const val escape = 70
-    const val eisu = 71
-    const val kana = 72
+    const val henkan = 71
+    const val muhenkan = 72
+    const val kana = 73
     // Pour les "autres" non définie (e.g. fn, quelconque...)
-    const val empty = 73
-    const val totalMKC = 74
+    const val empty = 74
+    const val totalMKC = 75
 
     /** Les mkcs de la ligne principale du clavier */
     val homerow: IntArray = (24..34).toIntArray()
@@ -78,6 +79,9 @@ object Scancode {
     const val up = 103
     const val down = 108
     // Divers
+    const val henkan = 92
+    const val muhenkan = 94
+    const val kana = 93
     const val empty = 0
 
     val ofMKC = mapOf(
@@ -99,6 +103,7 @@ object Scancode {
         MKC.capsLock to capsLock,
         MKC.shift to shiftLeft, MKC.rightShift to shiftRight,
         MKC.option to altLeft, MKC.rightOption to altRight,
+        MKC.kana to kana, MKC.henkan to henkan, MKC.muhenkan to muhenkan,
         MKC.empty to empty,
     )
 }

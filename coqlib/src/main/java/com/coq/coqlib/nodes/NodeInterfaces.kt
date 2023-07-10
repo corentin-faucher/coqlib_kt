@@ -14,7 +14,7 @@ import java.util.*
  * On utilise les flags selectable et selectableRoot pour les trouver.
  * (On peut être draggable mais pas actionable, e.g. le sliding menu.) */
 interface Draggable {
-    fun grab(posInit: Vector2)
+    fun grab(posInit: Vector2) // Les positions sont absolues (par rapport à root)
     fun drag(posNow: Vector2)
     fun letGo()
 }
@@ -41,22 +41,24 @@ interface Hoverable {
         // On ne peut hovering que s'il y a un curseur...
         // Si c'est un touch screen -> Juste afficher un framedString.
         // Voir CoqActivity onTouchEvent pour la détection du touch screen.
-        internal var inTouchScreen = true
+        var inTouchScreen = true
+            internal set
     }
 }
 
 /** Cas particulier de Hoverable où un popover apparaît. */
 interface HoverableWithPopover : Hoverable {
     val inFrontScreen: Boolean
+    val isStatic: Boolean // Init comme dans un touch screen (non hoverable)
+    val hideInTouchSreen: Boolean
     var popTimer: Timer?
     var popStringTex: Texture?
     val popFrameTex: Texture
-    var framedString: FramedString?
+    var framedString: FramedString? // Static, pas un popover
 
     override fun startHovering() {
-        // (Si hovering -> isStatic = false)
+        if(isStatic) return
         if(popTimer != null) return
-        if(framedString != null) return
         val newTimer = Timer()
         popTimer = newTimer
         newTimer.scheduleGL(350L) {
@@ -64,29 +66,33 @@ interface HoverableWithPopover : Hoverable {
         }
     }
     override fun stopHovering() {
+        if(isStatic) return
         popTimer?.cancel()
         popTimer = null
     }
-    // Crée un popover
+    // Crée le popover à la demande.
     private fun showPopMessage() {
         if (this !is Node) { printerror("Not a node..."); return }
-        // (pas de pop over si dans un touch screen ou pas de popString)
-        if(Hoverable.inTouchScreen) return
         val popStringTex = popStringTex ?: return
         PopMessage.over(this, popStringTex, popFrameTex, inFrontScreen = inFrontScreen)
     }
-    /// Met à jour la string à afficher dans le popover. En mode inTouchScreen, crée un framed string "static".
+    /// Met à jour la string à afficher dans le popover.
     fun setPopString(newStrTex: Texture?) {
         if (this !is Node) { printerror("Not a node..."); return }
         popStringTex = newStrTex
-        if(!Hoverable.inTouchScreen || newStrTex == null) {
+
+        if(!isStatic || hideInTouchSreen || newStrTex == null) {
             framedString?.disconnect()
             framedString = null
+            if(containsAFlag(Flag1.show))
+                showPopMessage()
             return
         }
-        // Touch Screen... Créer/updater la framedString (pas un popover)
-        framedString?.string?.updateStringTexture(newStrTex) ?:
-        run {
+        // Static et il faut afficher.
+        framedString?.let {
+            it.string.updateStringTexture(newStrTex)
+            it.string.setWidth(true)
+        } ?: run {
             val height = height.realPos
             framedString = FramedString(this, popFrameTex, newStrTex,
                 0f, 0.5f * height, 5f*height, 0.5f*height)

@@ -35,51 +35,52 @@ abstract class Button : Node
     abstract fun action()
 }
 
-// Simple bouton avec fond et devant affichant un texte lorsque survolé.
-abstract class ButtonWithPopover : Button, HoverableWithPopover {
-    final override val inFrontScreen: Boolean
-    final override val popFrameTex: Texture
-    override var popStringTex: Texture? = null
-    override var popTimer: Timer? = null
-    override var framedString: FramedString? = null
+// Superflu ??
+// Simple bouton affichant un texte lorsque survolé.
+// C'est mieux de le mettre ce type de classe dans le module de l'app.
+//abstract class ButtonWithPopover : Button, HoverableWithPopover {
+//    final override val inFrontScreen: Boolean
+//    final override val popFrameTex: Texture
+//    override var popStringTex: Texture? = null
+//    override var popTimer: Timer? = null
+//    override var framedString: FramedString? = null
+//
+//    constructor(ref: Node?,
+//                popFrameTex: Texture, popInFront: Boolean,
+//                x: Float, y: Float, height: Float, lambda: Float, flags: Long
+//    ) : super(ref, x, y, height, lambda, flags)
+//    {
+//        inFrontScreen = popInFront
+//        this.popFrameTex = popFrameTex
+//    }
+//    /** Convenience init bouton simple png. */
+//    constructor(ref: Node?,
+//                tile: Int, @StringRes popLocStrId: Int,
+//                x: Float, y: Float, height: Float, lambda: Float, flags: Long,
+//                @DrawableRes iconResId: Int = defaultIconId,
+//                @DrawableRes backResId: Int = defaultBackId, backI: Int = defaultBackTile,
+//                @DrawableRes popFrameId: Int = defaultPopFrameId, popInFront: Boolean = defaultPopInFront,
+//    ) : this(ref, Texture.getPng(popFrameId), popInFront,
+//        x, y, height, lambda, flags)
+//    {
+//        TiledSurface(this, backResId, 0f, 0f, height, lambda, backI)
+//        TiledSurface(this, iconResId, 0f, 0f, height, lambda, tile)
+//        setPopString(Texture.getLocalizedString(popLocStrId))
+//    }
+//    override fun action() {
+//        popTimer?.cancel()
+//        popTimer = null
+//    }
+//    companion object {
+//        @DrawableRes var defaultIconId: Int = R.drawable.sparkle_stars
+//        @DrawableRes var defaultBackId: Int = R.drawable.disks
+//        var defaultBackTile: Int = DiskColor.Yellow.ordinal
+//        @DrawableRes var defaultPopFrameId: Int = R.drawable.frame_gray_back
+//        var defaultPopInFront = false
+//    }
+//}
 
-    constructor(ref: Node?,
-                popFrameTex: Texture, popInFront: Boolean,
-                x: Float, y: Float, height: Float, lambda: Float, flags: Long
-    ) : super(ref, x, y, height, lambda, flags)
-    {
-        inFrontScreen = popInFront
-        this.popFrameTex = popFrameTex
-    }
-    /** Convenience init bouton simple png. */
-    constructor(ref: Node?,
-                tile: Int, @StringRes popLocStrId: Int,
-                x: Float, y: Float, height: Float, lambda: Float, flags: Long,
-                @DrawableRes iconResId: Int? = defaultIconId,
-                @DrawableRes backResId: Int = defaultBackId, backI: Int = defaultBackTile,
-                @DrawableRes popFrameId: Int = defaultPopFrameId, popInFront: Boolean = defaultPopInFront,
-    ) : this(ref, Texture.getPng(popFrameId), popInFront,
-        x, y, height, lambda, flags)
-    {
-        TiledSurface(this, backResId, 0f, 0f, height, lambda, backI)
-        iconResId?.let {
-            TiledSurface(this, it, 0f, 0f, height, lambda, tile)
-        }
-        setPopString(Texture.getLocalizedString(popLocStrId))
-    }
-    override fun action() {
-        popTimer?.cancel()
-        popTimer = null
-    }
-    companion object {
-        @DrawableRes var defaultIconId: Int = R.drawable.sparkle_stars
-        @DrawableRes var defaultBackId: Int = R.drawable.disks
-        var defaultBackTile: Int = DiskColor.Yellow.ordinal
-        @DrawableRes var defaultPopFrameId: Int = R.drawable.frame_gray_back
-        var defaultPopInFront = false
-    }
-}
-
+// Devrait hériter de Button?
 abstract class SecureButton : Node, Draggable {
     private val holdTimeInSec: Float
     @DrawableRes private val diskPngId: Int
@@ -88,16 +89,18 @@ abstract class SecureButton : Node, Draggable {
     private val failPopStrTex: Texture
     private var popDisk: PopDisk? = null
     private var actionTimer: Timer? = null
+    var diskDown: Boolean = false
 
     constructor(ref: Node?,
-                holdTimeInSec: Float, @DrawableRes diskPngId: Int, diskI: Int,
+                holdTimeInSec: Float,
+                @DrawableRes holdDiskPngId: Int, holdDiskTile: Int,
                 failPopStrTex: Texture, failPopFrameTex: Texture,
                 x: Float, y: Float, height: Float, lambda: Float, flags: Long
     ) : super(ref, x, y, height, height, lambda, flags)
     {
         this.holdTimeInSec = holdTimeInSec
-        this.diskPngId = diskPngId
-        this.diskI = diskI
+        this.diskPngId = holdDiskPngId
+        this.diskI = holdDiskTile
         this.failPopFrameTex = failPopFrameTex
         this.failPopStrTex = failPopStrTex
         makeSelectable()
@@ -108,12 +111,14 @@ abstract class SecureButton : Node, Draggable {
         popDisk?.disconnect()
         val h = height.realPos
         popDisk = PopDisk(this, diskPngId, holdTimeInSec,
-            -0.5f*h, 0f, h, 10f, diskI)
+            if(diskDown) 0f else -0.5f*h, 0f, h,
+            10f, diskI, diskDown)
         val newTimer = Timer()
         actionTimer = newTimer
         newTimer.scheduleGL(holdTimeInSec) {
             popDisk?.disconnect()
             popDisk = null
+            actionTimer = null
             action()
         }
     }
@@ -128,62 +133,63 @@ abstract class SecureButton : Node, Draggable {
         popDisk = null
         PopMessage.over(this, failPopStrTex, failPopFrameTex)
     }
-    companion object {
-        @DrawableRes var defaultDiskId: Int = R.drawable.disks
-        var defaultDiskTile: Int = DiskColor.Red.ordinal
-        @DrawableRes var defaultFailFrameId: Int = R.drawable.frame_red
-        @StringRes var defaultFailPopStrId = R.string.hold_down
-    }
+//    companion object {
+//        @DrawableRes var defaultDiskId: Int = R.drawable.disks
+//        var defaultDiskTile: Int = DiskColor.Red.ordinal
+//        @DrawableRes var defaultFailFrameId: Int = R.drawable.frame_red
+//        @StringRes var defaultFailPopStrId = R.string.hold_down
+//    }
 }
 
-abstract class SecureButtonWithPopover : SecureButton, HoverableWithPopover {
-    final override val inFrontScreen: Boolean
-    final override val popFrameTex: Texture
-    override var popStringTex: Texture? = null
-    override var popTimer: Timer? = null
-    override var framedString: FramedString? = null
-
-    constructor(ref: Node?,
-                popFrameTex: Texture, popInFront: Boolean,
-                holdTimeInSec: Float, @DrawableRes diskPngId: Int, diskI: Int,
-                failPopStrTex: Texture, failPopFrameTex: Texture,
-                x: Float, y: Float, height: Float, lambda: Float, flags: Long
-    ) : super(ref, holdTimeInSec, diskPngId, diskI, failPopStrTex, failPopFrameTex,
-        x, y, height, lambda, flags)
-    {
-        inFrontScreen = popInFront
-        this.popFrameTex = popFrameTex
-    }
-    /** Convenience init d'un bouton sécuritaire avec simple icon. */
-    constructor(ref: Node?,
-                tile: Int, @StringRes popLocStrId: Int,
-                x: Float, y: Float, height: Float, lambda: Float, flags: Long,
-                @DrawableRes iconResId: Int? = ButtonWithPopover.defaultIconId,
-                @DrawableRes backResId: Int = ButtonWithPopover.defaultBackId,
-                backI: Int = ButtonWithPopover.defaultBackTile,
-                @DrawableRes popFrameId: Int = ButtonWithPopover.defaultPopFrameId,
-                popInFront: Boolean = ButtonWithPopover.defaultPopInFront,
-                holdTimeInSec: Float = 2f,
-                @StringRes failPopStrId: Int = defaultFailPopStrId
-    ) : this(ref,
-        Texture.getPng(popFrameId), popInFront,
-        holdTimeInSec, defaultDiskId, defaultDiskTile,
-        Texture.getLocalizedString(failPopStrId), Texture.getPng(defaultFailFrameId),
-        x, y, height, lambda, flags)
-    {
-        // Back
-        TiledSurface(this, backResId, 0f, 0f, height, 0f, backI)
-        iconResId?.let {
-            TiledSurface(this, it, 0f, 0f, height, 0f, tile)
-        }
-        setPopString(Texture.getLocalizedString(popLocStrId))
-    }
-
-    override fun action() {
-        popTimer?.cancel()
-        popTimer = null
-    }
-}
+// Superflu ?
+//abstract class SecureButtonWithPopover : SecureButton, HoverableWithPopover {
+//    final override val inFrontScreen: Boolean
+//    final override val popFrameTex: Texture
+//    override var popStringTex: Texture? = null
+//    override var popTimer: Timer? = null
+//    override var framedString: FramedString? = null
+//
+//    constructor(ref: Node?,
+//                popFrameTex: Texture, popInFront: Boolean,
+//                holdTimeInSec: Float, @DrawableRes diskPngId: Int, diskI: Int,
+//                failPopStrTex: Texture, failPopFrameTex: Texture,
+//                x: Float, y: Float, height: Float, lambda: Float, flags: Long
+//    ) : super(ref, holdTimeInSec, diskPngId, diskI, failPopStrTex, failPopFrameTex,
+//        x, y, height, lambda, flags)
+//    {
+//        inFrontScreen = popInFront
+//        this.popFrameTex = popFrameTex
+//    }
+//    /** Convenience init d'un bouton sécuritaire avec simple icon. */
+//    constructor(ref: Node?,
+//                tile: Int, @StringRes popLocStrId: Int,
+//                x: Float, y: Float, height: Float, lambda: Float, flags: Long,
+//                @DrawableRes iconResId: Int? = ButtonWithPopover.defaultIconId,
+//                @DrawableRes backResId: Int = ButtonWithPopover.defaultBackId,
+//                backI: Int = ButtonWithPopover.defaultBackTile,
+//                @DrawableRes popFrameId: Int = ButtonWithPopover.defaultPopFrameId,
+//                popInFront: Boolean = ButtonWithPopover.defaultPopInFront,
+//                holdTimeInSec: Float = 2f,
+//                @StringRes failPopStrId: Int = defaultFailPopStrId
+//    ) : this(ref,
+//        Texture.getPng(popFrameId), popInFront,
+//        holdTimeInSec, defaultDiskId, defaultDiskTile,
+//        Texture.getLocalizedString(failPopStrId), Texture.getPng(defaultFailFrameId),
+//        x, y, height, lambda, flags)
+//    {
+//        // Back
+//        TiledSurface(this, backResId, 0f, 0f, height, 0f, backI)
+//        iconResId?.let {
+//            TiledSurface(this, it, 0f, 0f, height, 0f, tile)
+//        }
+//        setPopString(Texture.getLocalizedString(popLocStrId))
+//    }
+//
+//    override fun action() {
+//        popTimer?.cancel()
+//        popTimer = null
+//    }
+//}
 
 
 /** Classe de base des boutons de type "on/off".
@@ -229,11 +235,12 @@ abstract class SwitchButton : Node, Draggable
      * newX doit être dans le ref. du SwitchButton.
      * Retourne true si l'état à changer (i.e. action requise ?) */
     override fun drag(posNow: Vector2) {
+        val relPos = posNow.inReferentialOf(this)
         // 1. Ajustement de la position du nub.
-        nub.x.pos = min(max(posNow.x, -0.375f), 0.375f)
+        nub.x.pos = min(max(relPos.x, -0.375f), 0.375f)
         // 2. Vérifier si changement
-        if(isOn != (posNow.x > 0f)) {
-            isOn = posNow.x > 0f
+        if(isOn != (relPos.x > 0f)) {
+            isOn = relPos.x > 0f
             setBackColor()
             action()
         }
@@ -260,17 +267,30 @@ abstract class SwitchButton : Node, Draggable
 }
 
 /** Une switch qui ne marche pas (grayed out) */
-abstract class DummySwitchButton : Button {
-    constructor(ref: Node?, x: Float, y: Float, height: Float, lambda: Float = 0f, flags: Long = 0L
+class DummySwitchButton : Button {
+    @StringRes private val messageId: Int?
+    private val notePitch: Int
+    constructor(ref: Node?, @StringRes messageId: Int?,
+                x: Float, y: Float, height: Float, lambda: Float = 0f,
+                flags: Long = 0L, notePitch: Int = 0
     ) : super(ref, x, y, 1f, lambda, flags)
     {
+        this.messageId = messageId
+        this.notePitch = notePitch
         width.set(2f)
         scaleX.set(height)
         scaleY.set(height)
         initStructure()
     }
     protected constructor(other: DummySwitchButton) : super(other) {
+        messageId = other.messageId
+        notePitch = other.notePitch
         initStructure()
+    }
+    override fun action() {
+        if(messageId == null) return
+        PopMessage.over(this, messageId)
+        SoundManager.playWithResId(R.raw.note_piano, notePitch)
     }
     private fun initStructure() {
         TiledSurface( this, R.drawable.switch_back,
@@ -326,8 +346,9 @@ abstract class SliderButton : Node, Draggable
     }
 
     override fun drag(posNow: Vector2) {
+        val relPos = posNow.inReferentialOf(this)
         // 1. Ajustement de la position du nub.
-        nub.x.pos = min(max(posNow.x, -slideWidth/2), slideWidth/2)
+        nub.x.pos = min(max(relPos.x, -slideWidth/2), slideWidth/2)
         value = nub.x.realPos / slideWidth + 0.5f
         // 2. Action!
         if (!actionAtLetGo)

@@ -6,6 +6,7 @@ import com.coq.coqlib.Flagable
 import com.coq.coqlib.maths.SmoothPos
 import com.coq.coqlib.maths.Vector2
 import com.coq.coqlib.graph.PerInstanceUniforms
+import com.coq.coqlib.printdebug
 import com.coq.coqlib.printerror
 import kotlin.math.abs
 
@@ -449,8 +450,9 @@ fun Node.setRelatively(fix: Boolean) {
         yDec = -theParent.height.realPos * 0.5f
     if(containsAFlag(Flag1.justifiedRight))
         xDec -= deltaX
-    else if(containsAFlag(Flag1.justifiedLeft))
+    else if(containsAFlag(Flag1.justifiedLeft)) {
         xDec += deltaX
+    }
     if(containsAFlag(Flag1.justifiedTop))
         yDec -= deltaY
     else if(containsAFlag(Flag1.justifiedBottom))

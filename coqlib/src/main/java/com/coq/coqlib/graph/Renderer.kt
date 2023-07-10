@@ -7,6 +7,7 @@
 
 package com.coq.coqlib.graph
 
+import android.graphics.Rect
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.view.KeyEvent
@@ -30,6 +31,15 @@ class Renderer(private val activity: CoqActivity,
     // (en fait, ça ne fait que préparer les "for instance uniforms" pour la frame courante).
     private val setForDrawing : (Node.() -> Surface?) = setForDrawing ?: Node::defaultSetNodeForDrawing
     private lateinit var root: AppRootBase
+
+    private var isPaused: Boolean = false
+        set(value) {
+            RenderingChrono.isPaused = value
+            AppChrono.isPaused = value
+            if(!value && value != field)
+                root.didResume(AppChrono.lastSleepTimeSec)
+            field = value
+        }
 
     /*-- Méthodes devant être définies pour Renderer de GLSurfaceView. --*/
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -70,12 +80,17 @@ class Renderer(private val activity: CoqActivity,
         PerInstanceUniforms.init(programID)
         // 6. Init de la structure (à faire après les autres init)
         root = activity.getAppRoot()
+        printdebug("OpenGL surface created.")
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
-        root.updateFrameSize(width, height, 0f, 0f, 0f, 0f)
+        val rect = Rect()
+        activity.window.decorView.getWindowVisibleDisplayFrame(rect)
+        root.updateFrameSize(width, height, rect.top,0f, 0f, 0f, 0f)
         if (!Texture.loaded) {
+            isPaused = false
+            printdebug("Resuming renderer")
             Texture.resume()
         }
     }
@@ -103,24 +118,29 @@ class Renderer(private val activity: CoqActivity,
     }
 
     internal fun onPause() {
+        isPaused = true
         Texture.suspend()
     }
 
     /*-- Touch et Drag d'objets --*/
-    private var downPos = Vector2(0f, 0f)
+    private var downAbsPos = Vector2(0f, 0f)
     private var startMoving = false
+    private var wasSlidingMenu = false
     internal fun onDown(posX: Float, posY: Float) {
-        // 1. Position normalisée par rapport à la root, e.g. pos dans [-1.7, 1.7] x [-1, 1].
-        downPos = root.getPositionFrom(posX, posY)
+        isPaused = false
+        // 1. Position normalisée (et absolue) par rapport à la root, e.g. pos dans [-1.7, 1.7] x [-1, 1].
+        downAbsPos = root.getPositionFrom(posX, posY)
         startMoving = false
+        wasSlidingMenu = false
         // 2. Essayer de trouver un noeud à cette position.
-        val touched = root.searchBranchForSelectable(downPos, null) ?: return
+        val selected = root.searchBranchForSelectableAt(downAbsPos, null) ?: return
+        // Vérifier le cas sliding menu (prendre le sliding menu au lieu du selected child si ce dernier n'est pas dragable).
+        val touched = if(selected !is Draggable) (selected.parent?.parent as? SlidingMenu) ?: selected else selected
         when(touched) {
             // Prendre si draggable
             is Draggable -> {
                 root.grabbedNode = touched
-                val relPos = downPos.inReferentialOf(touched)
-                touched.grab(relPos)
+                touched.grab(downAbsPos)
             }
             // Sinon activer le noeud sélectionné (non Draggable)
             is Button -> touched.action()
@@ -128,15 +148,16 @@ class Renderer(private val activity: CoqActivity,
         }
     }
     internal fun onMove(newPosX: Float, newPosY: Float) {
-        val newPos = root.getPositionFrom(newPosX, newPosY)
-        val dist = newPos.distanceTo(downPos)
-        // Il faut un minimum de déplacement pour "activer" un déplacement.
+        isPaused = false
+        val newAbsPos = root.getPositionFrom(newPosX, newPosY)
+        val dist = newAbsPos.distanceTo(downAbsPos)
+        // Il faut un minimum de déplacement pour "activer" le mode déplacement déplacement.
+        // (Si bouge pas vraiment -> simple "touch")
         if( !startMoving && dist < 0.03 ) return
-        // Ok, on bouge... s'il y a un noeud de grabbé.
+        // Ok, on bouge... (le noeud grabbé si présent)
         startMoving = true
         val grabbed = root.grabbedNode ?: return
-        val relPos = newPos.inReferentialOf(grabbed)
-        (grabbed as? Draggable)?.drag(relPos)
+        (grabbed as? Draggable)?.drag(newAbsPos)
     }
     internal fun onUp() {
         val grabbed = root.grabbedNode ?: return
@@ -144,8 +165,8 @@ class Renderer(private val activity: CoqActivity,
         (grabbed as? Draggable)?.letGo()
     }
     internal fun onHovering(posX: Float, posY: Float) {
-        val pos = root.getPositionFrom(posX, posY)
-        val hovered = root.searchBranchForSelectable(pos, null)
+        val absPos = root.getPositionFrom(posX, posY)
+        val hovered = root.searchBranchForSelectableAt(absPos, null)
         if(hovered !== root.selectedNode) {
             (root.selectedNode as? Hoverable)?.stopHovering()
             root.selectedNode = hovered
@@ -155,14 +176,13 @@ class Renderer(private val activity: CoqActivity,
         (hovered as? Hoverable)?.startHovering()
     }
     internal fun onScroll(deltaY: Float) {
-        printdebug("Scroll $deltaY")
-//        val scrollable = root.searchBranchForFirstSelectableTyped<Scrollable>()
         val scrollable: Node = root.searchBranchForFirstSelectableUsing { it is Scrollable } ?: return
         (scrollable as? Scrollable)?.scroll(deltaY)
     }
     /*-- Keyboard events --*/
     internal fun onKeyDown(key: KeyboardInput) {
-        when(key.keycode) {
+        isPaused = false
+        when(key._keycode) {
             KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER ->
                 (root.activeScreen as? Enterable)?.let { it.enterAction(); return }
             KeyEvent.KEYCODE_ESCAPE ->
@@ -220,9 +240,9 @@ private fun Node.defaultSetNodeForDrawing() : Surface? {
     if (this !is Surface) {return null}
     // Facteur d'"affichage"
     val alpha = trShow.setAndGet(containsAFlag(Flag1.show))
-    piu.color[3] = alpha
     // Sortir si rien à afficher...
     if (alpha == 0f) { return null }
+    piu.show = alpha
     // Ajuster la matrice model.
     piu.model.translate(x.pos, y.pos, z.pos)
     if (containsAFlag(Flag1.popping)) {

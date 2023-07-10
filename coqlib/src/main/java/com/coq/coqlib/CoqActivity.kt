@@ -13,7 +13,11 @@ import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.updateLayoutParams
 import com.coq.coqlib.graph.Renderer
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.nodes.AppRootBase
@@ -40,6 +44,7 @@ abstract class CoqActivity(private val appThemeID: Int,
     abstract fun getAppRoot() : AppRootBase
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(appThemeID)
         super.onCreate(savedInstanceState)
         // 1. Init des sons
         SoundManager.initWith(this, getExtraSoundIdsWithVolumeIds())
@@ -54,6 +59,8 @@ abstract class CoqActivity(private val appThemeID: Int,
         currentView = WeakReference(view)
 
         Language.initWith(this)
+
+        printdebug("Activity on create.")
     }
 
 //    override fun attachBaseContext(newBase: Context) {
@@ -65,6 +72,7 @@ abstract class CoqActivity(private val appThemeID: Int,
     override fun onResume() {
         super.onResume()
         view.onResume()
+        printdebug("Activity on resume.")
     }
     override fun onPause() {
         super.onPause()
@@ -80,7 +88,9 @@ abstract class CoqActivity(private val appThemeID: Int,
         if(event == null) { return super.onTouchEvent(null) }
         Hoverable.inTouchScreen = event.source == InputDevice.SOURCE_TOUCHSCREEN
         when(event.action) {
-            MotionEvent.ACTION_DOWN -> view.queueEvent { renderer.onDown(event.x, event.y) }
+            MotionEvent.ACTION_DOWN -> view.queueEvent {
+                renderer.onDown(event.x, event.y)
+            }
             MotionEvent.ACTION_MOVE -> view.queueEvent { renderer.onMove(event.x, event.y) }
             MotionEvent.ACTION_CANCEL -> { printwarning("Cancel ? utile ?"); view.queueEvent { renderer.onUp() }}
             MotionEvent.ACTION_UP -> view.queueEvent { renderer.onUp() }
@@ -124,12 +134,12 @@ abstract class CoqActivity(private val appThemeID: Int,
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-        } else {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            WindowCompat.setDecorFitsSystemWindows(window, false)
+//        } else {
             @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        }
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE
+//        }
         // TODO check pour les status en haut de l'écran...
 //        WindowInsetsControllerCompat(window, mainContainer)
     }

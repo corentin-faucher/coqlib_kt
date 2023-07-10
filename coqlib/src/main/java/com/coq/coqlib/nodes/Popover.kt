@@ -33,7 +33,7 @@ class PopMessage : Node
         openAndShowBranch()
         // Dépassement ? -> Ajustement
         val (v, vS) = positionAndDeltaAbsolute()
-        @Suppress("ControlFlowWithEmptyBody") val x_over_left = v.x - vS.x + 0.5f * screen.width.realPos
+        val x_over_left = v.x - vS.x + 0.5f * screen.width.realPos
         val x_over_right = v.x + vS.x - 0.5f * screen.width.realPos
         val x_adj: Float = min(x_over_left, max(x_over_right, 0f)) * deltaX / vS.x
         val y_over_bottom = v.y - vS.y + 0.5f * screen.height.realPos
@@ -62,17 +62,16 @@ class PopMessage : Node
     }
 
     companion object {
-        fun initWith(frontScreen: Screen, frameTexture: Texture) {
-            screen = frontScreen
-            defaultFrameTexture = frameTexture
-        }
-        //
         operator fun invoke(
             strTex: Texture, frameTex: Texture?,
             x: Float, y: Float, width: Float, height: Float,
             fadePos: Vector2, fadeScale: Vector2, deltaT: Float
-        ) : PopMessage
+        ) : PopMessage?
         {
+            if(!this::screen.isInitialized) {
+                printerror("PopMessage screen or frameTexture not init.")
+                return null
+            }
             val frame = frameTex ?: defaultFrameTexture
             return PopMessage(screen, deltaT,
                 frame, strTex, fadePos, fadeScale,
@@ -80,38 +79,45 @@ class PopMessage : Node
         }
         /** Convenience init pour les localized string. */
         operator fun invoke(
-            @StringRes locStrId: Int, @DrawableRes frameResId: Int? = null
-        ) : PopMessage
+            @StringRes locStrId: Int, @DrawableRes frameResId: Int? = null,
+            y: Float = 0f, height: Float = 0.3f
+        ) : PopMessage?
         {
             val strTex = Texture.getLocalizedString(locStrId)
-            val frameTex = frameResId?.let {Texture.getPng(it)} ?: defaultFrameTexture
+            val frameTex = frameResId?.let {Texture.getPng(it)}
             return PopMessage(strTex, frameTex,
-                0f, 0f, 1f, 0.2f,
-                Vector2(0f, -0.1f), Vector2(-0.5f, -0.5f), 2f)
+                0f, y, screen.width.realPos, height,
+                Vector2(0f, -0.05f * height), Vector2(-0.25f, -0.35f), 2f)
         }
         operator fun invoke(
-            string: String, frameTex: Texture? = null
-        ) : PopMessage
+            string: String, @DrawableRes frameResId: Int? = null,
+            y: Float = 0f, height: Float = 0.3f
+        ) : PopMessage?
         {
-            return PopMessage(Texture.getConstantString(string), frameTex,
-                0f, 0f, 1f, 0.2f,
-                Vector2(0f, -0.1f), Vector2(-0.5f, -0.5f), 2f)
+            val strTex = Texture.getConstantString(string)
+            val frameTex = frameResId?.let {Texture.getPng(it)}
+            return PopMessage(strTex, frameTex,
+                0f, y, screen.width.realPos, height,
+                Vector2(0f, -0.05f * height), Vector2(-0.25f, -0.35f), 2f)
         }
         fun over(ref: Node, strTex: Texture, frameTex: Texture? = null,
             deltaT: Float = 2f, inFrontScreen: Boolean = true, relHeight: Float = 0.5f,
-        ) : PopMessage
+        ) : PopMessage?
         {
+            if(!this::screen.isInitialized) {
+                printerror("PopMessage screen or frameTexture not init.")
+                return null
+            }
             val frame = frameTex ?: defaultFrameTexture
             var height = ref.height.realPos * relHeight
             var fadePos = Vector2(0f, -0.5f*height)
             val fadeScale = Vector2(-0.5f, -0.5f)
             if(!inFrontScreen) {
-                printdebug("PopMessage in ref with height")
                 return PopMessage(ref, deltaT, frame, strTex,
                     fadePos, fadeScale,
                     0f, 0.5f*ref.height.realPos, 20f*height, height)
             }
-            val sq = Squirrel(ref, Vector2(ref.x.realPos, ref.y.realPos + ref.deltaY), ScaleInit.Ones)
+            val sq = Squirrel(ref, Vector2(0f, ref.deltaY), ScaleInit.Ones)
             @Suppress("ControlFlowWithEmptyBody")
             while(sq.goUpPS()) {}
             fadePos *= sq.vS
@@ -123,21 +129,21 @@ class PopMessage : Node
         /** Convenience init */
         fun over(ref: Node, @StringRes locStrId: Int, frameTex: Texture? = null,
                  deltaT: Float = 2f, inFrontScreen: Boolean = true, relHeight: Float = 0.5f,
-        ) : PopMessage
+        ) : PopMessage?
         {
             return over(ref, Texture.getLocalizedString(locStrId), frameTex, deltaT, inFrontScreen, relHeight)
         }
         fun over(ref: Node, cstString: String, frameTex: Texture? = null,
                  deltaT: Float = 2f, inFrontScreen: Boolean = true, relHeight: Float = 0.5f,
-        ) : PopMessage
+        ) : PopMessage?
         {
             return over(ref, Texture.getConstantString(cstString), frameTex, deltaT, inFrontScreen, relHeight)
         }
 
 //        val maxWidth: Float = screen.width.realPos * 0.95f
 
-        private lateinit var defaultFrameTexture: Texture
-        internal lateinit var screen: Screen
+        lateinit var defaultFrameTexture: Texture
+        lateinit var screen: Screen
     }
 }
 
@@ -151,11 +157,27 @@ class PopDisk : ProgressDisk {
 
     constructor(refNode: Node, @DrawableRes pngResId: Int,
                 deltaT: Float, x: Float, y: Float, height: Float,
-                lambda: Float, i: Int, flags: Long = 0L
-    ) : super(refNode, pngResId, x, y, height, lambda, i, flags)
+                lambda: Float, i: Int, down: Boolean
+    ) : super(refNode, pngResId, x, y, height, lambda, i)
     {
         this.deltaT = deltaT
-        start()
+        // Commence "vide" -> ratio = 0.
+        updateRatio(0f)
+        chrono.start()
+        // Effet d'apparition.
+        this.y.fadeInFromDef(if(down) -height else height)
+        width.fadeIn(-height * 0.3f)
+        this.height.fadeIn(-height * 0.3f)
+        // Ouvrir le noeud
+        openAndShowBranch()
+        // Mise à jour en continue
+        timer1.scheduleAtFixedRateGL(50L, 50L) {
+            updateRatio(min(chrono.elapsedSec / deltaT, 1f))
+        }
+        // Fini
+        timer2.scheduleGL((1000f * deltaT).toLong()) {
+            discard()
+        }
     }
     // Retirer prématurément le popDisk.
     fun discard() {
@@ -174,32 +196,16 @@ class PopDisk : ProgressDisk {
             disconnect()
         }
     }
-    /** Copie... Superflu pour les popover ?... */
-    private constructor(other: PopDisk) : super(other) {
-        deltaT = other.deltaT
-        start()
-    }
-    override fun clone() = PopDisk(this)
+//    /** Copie... Superflu pour les popover ?... */
+//    private constructor(other: PopDisk) : super(other) {
+//        deltaT = other.deltaT
+//        start()
+//    }
+//    override fun clone() = PopDisk(this)
 
-    private fun start() {
-        // Commence "vide" -> ratio = 0.
-        updateRatio(0f)
-        chrono.start()
-        // Effet d'apparition.
-        this.y.fadeInFromDef(height.realPos)
-        width.fadeIn(-height.realPos * 0.3f)
-        this.height.fadeIn(-height.realPos * 0.3f)
-        // Ouvrir le noeud
-        openAndShowBranch()
-        // Mise à jour en continue
-        timer1.scheduleAtFixedRateGL(50L, 50L) {
-            updateRatio(min(chrono.elapsedSec / deltaT, 1f))
-        }
-        // Fini
-        timer2.scheduleGL((1000f * deltaT).toLong()) {
-            discard()
-        }
-    }
+//    private fun start() {
+//
+//    }
 
 }
 

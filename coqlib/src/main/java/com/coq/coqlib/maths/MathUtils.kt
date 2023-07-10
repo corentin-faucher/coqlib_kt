@@ -59,11 +59,11 @@ fun Vector3.normalize() : Vector3 {
 
 //println("Err in ${functionName}: ${message}")
 
-fun getIdentity() : FloatArray =
-    floatArrayOf(1f, 0f, 0f, 0f,
-        0f, 1f, 0f, 0f,
-        0f, 0f, 1f, 0f,
-        0f, 0f, 0f, 1f)
+fun getIdentity() = floatArrayOf(
+    1f, 0f, 0f, 0f,
+    0f, 1f, 0f, 0f,
+    0f, 0f, 1f, 0f,
+    0f, 0f, 0f, 1f)
 
 fun FloatArray.translate(tx: Float, ty: Float, tz: Float) {
     this[12] += this[0] * tx + this[4] * ty + this[8] * tz
@@ -143,8 +143,6 @@ fun FloatArray.rotateYandTranslateYZ(thetaY: Float, ty: Float, tz: Float) {
     this[12] += s*v1[0]*tz + this[4] * ty + c*v3[0]*tz
     this[13] += s*v1[1]*tz + this[5] * ty + c*v3[1]*tz
     this[14] += s*v1[2]*tz + this[6] * ty + c*v3[2]*tz
-
-
 }
 
 fun getLookAt(eye: Vector3, center: Vector3, up: Vector3) : FloatArray {
@@ -165,10 +163,12 @@ fun getLookAt(eye: Vector3, center: Vector3, up: Vector3) : FloatArray {
 
 fun getPerspective(nearZ: Float, farZ: Float, middleZ: Float,
                    deltaX: Float, deltaY: Float)
-        = floatArrayOf(2f * middleZ / deltaX, 0f, 0f, 0f,
+        = floatArrayOf(
+    2f * middleZ / deltaX, 0f, 0f, 0f,
     0f, 2f * middleZ / deltaY, 0f, 0f,
     0f, 0f, (farZ + nearZ) / (nearZ - farZ), -1f,
-    0f, 0f, (2f * farZ * nearZ) / (nearZ - farZ), 0f)
+    0f, 0f, (2f * farZ * nearZ) / (nearZ - farZ), 0f
+)
 
 
 enum class Digits {
@@ -202,6 +202,19 @@ enum class Digits {
 fun Float.toNormalizedAngle()
     = this - ceil((this - PI.toFloat()) / (2f * PI.toFloat())) * 2f * PI.toFloat()
 
+/** Retourne la plus grosse "subdivision" pour le nombre présent en base 10.
+     * Le premier chiffre peut être : 1, 2 ou 5. Utile pour les axes de graphiques.
+     * e.g.: 792 -> 500, 192 -> 100, 385 -> 200. */
+fun Float.toRoundedSubDiv() : Float {
+    val pow10 = 10f.pow(floor(log10(this)))
+    val mantissa = this / pow10
+    if(mantissa < 2f)
+        return pow10
+    if(mantissa < 5f)
+        return pow10 * 2f
+    return pow10 * 5f
+}
+
 fun Float.truncated(delta: Float)
     = if(this > 0f) max(0f, this - delta)
       else min(0f, this + delta)
@@ -209,8 +222,20 @@ fun Float.truncated(delta: Float)
 fun Float.Companion.random(moy: Float, delta: Float)
     = (Random.nextFloat() - 0.5f) * 2f * delta + moy
 
+/*-- Traitement de Long comme un ensemble de flags. */
 fun Long.containsFlag(flag: Long)
     = (this and flag) != 0L
+fun Long.removingFlag(toRemove: Long)
+    = this and toRemove.inv()
+fun Long.addingFlag(toAdd: Long)
+    = this or toAdd
+fun Long.addingAndRemovingFlag(toAdd: Long, toRemove: Long)
+    = (this or toAdd) and toRemove.inv()
+fun Long.togglingOption(toToggle: Long)
+    = this xor toToggle
+fun Long.settingFlag(toSet: Long, isOn: Boolean)
+    = if(isOn) this or toSet
+        else this and toSet.inv()
 
 fun Int.containsFlag(flag: Int)
     = (this and flag) != 0

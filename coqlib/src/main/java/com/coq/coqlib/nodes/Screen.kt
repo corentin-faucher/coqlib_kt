@@ -19,7 +19,7 @@ interface Enterable {
 interface KeyResponder {
     fun keyDown(key: KeyboardInput)
     fun keyUp(key: KeyboardInput)
-    fun modifiersChangedTo(newModifiers: UInt)
+    fun modifiersChangedTo(newModifiers: Int)
 }
 
 /** Modèle pour les noeuds racine d'un screen.
@@ -31,14 +31,16 @@ abstract class Screen : Node
     var landscapePortraitThreshold: Float = 1f
 
     /** Les écrans sont toujours ajoutés juste après l'ainé.
-     * add 1 : 0->1,  add 2 : 0->{1,2},  add 3 : 0->{1,3,2},  add 4 : 0->{1,4,3,2}, ...
-     * i.e. les deux premiers écrans sont le back et le front respectivement,
+     * add f (front) : 0->f,  add b (back) : 0->{b, f},  add 1 : 0->{b, 1, f},  add 2 : 0->{b, 1, 2, f}, ...
+     * i.e. les deux premiers écrans sont le front et le back respectivement,
      * les autres sont au milieu. */
     constructor(root: AppRootBase
     ) : super(null, 0f, 0f, 4f, 4f, 0f, Flag1.reshapeableRoot)
     {
         (root.firstChild as? Screen)?.let { elder ->
-            simpleMoveToBro(elder, false)
+            // Si l'ainé est le "front", on place cette nouvelle fenêtre en ainé.
+            // Sinon, comme deuxième.
+            simpleMoveToBro(elder, elder is AppRootBase.FrontScreen)
         } ?: run {
             simpleMoveToParent(root, false)
         }

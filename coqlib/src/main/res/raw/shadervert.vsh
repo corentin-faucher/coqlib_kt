@@ -19,6 +19,7 @@ uniform mat4  model;
 uniform vec2  texIJ;
 uniform vec4  color;
 uniform float emph;
+uniform float show;
 uniform int   flags;
 
 // Retourné au fragment shader
@@ -26,7 +27,7 @@ varying vec2 uvOut;
 varying vec4 colorOut;
 
 void main() {
-    colorOut = vec4(color.xyz, 1.) * color.a;
+    colorOut = vec4(color.xyz, 1.) * color.a * show;
 //     colorOut = vec4(0,0,1,1);
     vec4 posTmp = position;
     // Déformation d'emphase et oscillation

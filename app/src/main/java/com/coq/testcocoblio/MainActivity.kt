@@ -1,8 +1,10 @@
 package com.coq.testcocoblio
 
 import com.coq.coqlib.*
+import com.coq.coqlib.graph.DiskColor
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.graph.Texture.Tiling
+import com.coq.coqlib.graph.addColorDisk
 import com.coq.coqlib.graph.scheduleGL
 import com.coq.coqlib.nodes.*
 import com.coq.coqlib.R as RC
@@ -46,14 +48,17 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
 /** Noeud racine de la structure à afficher... */
 class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
     init {
-        /** Y mettre : un écran de fond et un écran de "devant": */
+        /** Y mettre : un écran de fond, */
         Background(this)
-        Foreground(this)
-        /** Commencer dans un écran "FirstScreen" (voir plus bas pour FirstScreen...) */
+        /** Puis, commencer dans un écran "FirstScreen" (voir plus bas pour FirstScreen...) */
         changeActiveScreenToNewOfClass(FirstScreen::class.java)
     }
     override fun willDrawFrame() {
         // (pass, rien à mettre à jour...)
+    }
+
+    override fun didResume(sleepingTimeSec: Float) {
+        // (pass, rien à faire après un retour)
     }
 }
 
@@ -79,18 +84,6 @@ class Background(root: AppRoot) : Screen(root) {
     }
 }
 
-/** Un écran "en avant" pour les effets de particules, pop over, curseur, ...
- * (vide à priori...) */
-class Foreground(root: AppRoot) : Screen(root) {
-    init {
-        addFlags(Flag1.dontAlignScreenElements or Flag1.persistentScreen or Flag1.show)
-        /** Init des statics pour les Popover...
-         * (les popover s'affiche dans le "front" screen par défaut. */
-        PopMessage.initWith(this, Texture.getPng(RC.drawable.frame_mocha))
-        Sparkles.initWith(this)
-    }
-}
-
 /** Premier écran de test */
 class FirstScreen(root: AppRoot) : Screen(root) {
     init {
@@ -100,7 +93,8 @@ class FirstScreen(root: AppRoot) : Screen(root) {
         ).also { block ->
             block.addFrame(RC.drawable.frame_white_back, 0.05f)
             ChangeLanguageButton(block, root, 0f, 0.25f, 1f,0.15f)
-            FramedString(block, RC.drawable.frame_gray_back, R.string.english_only,
+            val englishTex = Texture.getLocalizedString(R.string.english_only)
+            FramedString(block, RC.drawable.frame_gray_back, englishTex,
                 0f, 0.4f, 0.5f,0.10f, flags = Flag1.reshapeableRoot)
 
             TestButton(block, root, -0.35f, -0.15f, 0.2f) {
@@ -115,6 +109,7 @@ class FirstScreen(root: AppRoot) : Screen(root) {
             TestString(block, "jxéà Một sủa", fontToTest,
                 0.00f, -0.40f, 0.12f)
         }
+        // Un bloc avec un menu déroulant
         Node(this, 0f, 0f, 1.2f, 2f, 0f
         ).run {
             scaleX.set(0.5f)
@@ -126,24 +121,15 @@ class FirstScreen(root: AppRoot) : Screen(root) {
                 // Largeur maximal pour le sliding menu.
                 val width = itemRelativeWidth
                 addItem(SliderTest(null, 0f, 0f, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Allo", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Bonjour", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Canard", 0f, 0f, 2.5f, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Chien qui jappe très fort !", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Chat", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Autruche", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Pingouin", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Capibara", 0f, 0f, width, 1f))
-                addItem(FramedString(null, com.coq.coqlib.R.drawable.frame_mocha,
-                    "Cochon d'inde", 0f, 0f, width, 1f))
+                addItem(getSlidingMenuItem("Allo", width))
+                addItem(getSlidingMenuItem("Bonjour", width))
+                addItem(getSlidingMenuItem("Canard", 2.5f))
+                addItem(getSlidingMenuItem("Chien qui jappe très fort !", width))
+                addItem(getSlidingMenuItem("Chat", width))
+                addItem(getSlidingMenuItem("Autruche", width))
+                addItem(getSlidingMenuItem("Pingouin", width))
+                addItem(getSlidingMenuItem("Capibara", width))
+                addItem(getSlidingMenuItem("Cochon d'inde", width))
 
             }
         }
@@ -154,6 +140,9 @@ class FirstScreen(root: AppRoot) : Screen(root) {
             PopMessage.over(this, "Bonjour !")
         }
     }
+    private fun getSlidingMenuItem(str: String, width: Float)
+        = FramedString(null, RC.drawable.frame_mocha, Texture.getConstantString(str), 0f, 0f, width, 1f)
+
 }
 
 /** Deuxième écran de test */
@@ -191,7 +180,7 @@ class SecondScreen(root: AppRoot) : Screen(root) {
 class SliderTest : SliderButton
 {
     constructor(ref: Node?, x: Float, y: Float, height: Float
-    ) : super(ref, 0f, true, x, y, height, 4f*height)
+    ) : super(ref, 0f, true, x, y, height, 2f*height)
     private constructor(other: SliderTest) : super(other)
     override fun clone() = SliderTest(this)
 
@@ -221,11 +210,13 @@ class ChangeLanguageButton(
 
 class TestButton(ref: Node, private val root: AppRoot, x: Float, y: Float, height: Float,
                  private val doAction: AppRoot.() -> Unit
-) : SecureButtonWithPopover(ref,  5, R.string.button,
-    x, y, height, 0f, 0L)
+) : Button(ref, x, y, height)
 {
+    init {
+        addColorDisk(0f, 0f, height, DiskColor.Blue)
+        TiledSurface(this, R.drawable.some_animals, 0f, 0f, height, i = 5)
+    }
     override fun action() {
-        super.action()
         root.doAction()
     }
 }

@@ -2,7 +2,9 @@
 
 package com.coq.coqlib.nodes
 
+import android.graphics.Rect
 import com.coq.coqlib.*
+import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.maths.*
 import java.util.*
 import kotlin.concurrent.schedule
@@ -22,6 +24,7 @@ open class RootNode : Node {
     var frameWidth: Float = 2f
         private set
     private var frameHeightPx: Float = 100f
+    private var statusBarTopPx: Float = 0f // L'espace occupé par la bar d'état en haut (32 px ou 0).
     var frameHeight: Float = 2f
         private set
     private var yShift: Float = 0f
@@ -56,14 +59,15 @@ open class RootNode : Node {
             frameWidth, frameHeight)
     }
 
-    fun updateFrameSize(newWidth: Int, newHeight: Int,
+    fun updateFrameSize(newWidth: Int, newHeight: Int, statusBarTop: Int,
                         marginTop: Float, left: Float, bottom: Float, right: Float)
     {
         frameWidthPx = newWidth.toFloat()
         frameHeightPx = newHeight.toFloat()
+        this.statusBarTopPx = statusBarTop.toFloat()
         val frameRatio = frameWidthPx / frameHeightPx
-        val ratioT = marginTop / frameHeightPx + 0.005f // La marge en haut.
-        val ratioB = bottom / frameHeightPx + 0.005f // La marge en bas.
+        val ratioT = marginTop / frameHeightPx + 0.03f // La marge en haut.
+        val ratioB = bottom / frameHeightPx + 0.02f // La marge en bas.
         val ratioLR = (left + right) / frameWidthPx + 0.01f // La marge gauche/droite.
         // 1. Full Frame
         if (newWidth > newHeight) { // Landscape
@@ -86,10 +90,20 @@ open class RootNode : Node {
         // 4. Reshape la structure...
         reshapeBranch()
     }
-    // (Axe des y inversé : facteur -1 pour les y.)
-    fun getPositionFrom(locationInWindowX: Float, locationInWindowY: Float)
+    // (Axe des y inversé : facteur -1 pour les y. et retirer l'espace occupé par la bar d'état...)
+    fun getPositionFrom(locationInWindowX: Float, locationInWindowY: Float) : Vector2
             = Vector2((locationInWindowX / frameWidthPx - 0.5f) * frameWidth,
-        -(locationInWindowY / frameHeightPx - 0.5f) * frameHeight + yShift)
+        -((locationInWindowY - statusBarTopPx) / frameHeightPx - 0.5f) * frameHeight + yShift)
+
+    // Retrouver le frame absolue dans la vue de l'activité Android (en pixels)
+    fun getFrameFrom(pos: Vector2, deltas: Vector2) : Pair<Vector2, Vector2>
+    {
+        val width: Float = 2f * deltas.x / frameWidth * frameWidthPx
+        val height: Float = 2f * deltas.y / frameHeight * frameHeightPx
+        return Vector2(((pos.x - deltas.x) / frameWidth + 0.5f) * frameWidthPx,
+        ((pos.y + deltas.y - yShift) / -frameHeight + 0.5f) * frameHeightPx
+        ) to Vector2(width, height)
+    }
 
     override fun reshape() {
         if(parentRoot == null) {
@@ -110,10 +124,14 @@ open class RootNode : Node {
     }
 }
 
-abstract class AppRootBase(val coqAct: CoqActivity) : RootNode(null, null)
+abstract class AppRootBase : RootNode
 {
+    val ctx: CoqActivity
+    /** L'écran où on est présentement */
     var activeScreen: Screen? = null
         private set
+    /** L'écran "en avant" pour les popover, sparkles, etc. */
+    val frontScreen: Screen
     var selectedNode: Node? = null
     var grabbedNode: Node? = null
     var changeScreenAction: (()->Unit)? = null
@@ -122,7 +140,18 @@ abstract class AppRootBase(val coqAct: CoqActivity) : RootNode(null, null)
     val smG = SmoothPos(0f, 5f)
     val smB = SmoothPos(0f, 5f)
 
+    constructor(coqAct: CoqActivity) : super(null, null) {
+        this.ctx = coqAct
+        frontScreen = FrontScreen(this)
+        // Init par défaut des objets qui pop dans le front screen.
+        PopMessage.screen = frontScreen
+        PopMessage.defaultFrameTexture = Texture.getPng(R.drawable.frame_mocha)
+        Sparkles.screen = frontScreen
+        Sparkles.sparklesTex = Texture.getPng(R.drawable.sparkle_stars)
+    }
+
     abstract fun willDrawFrame()
+    abstract fun didResume(sleepingTimeSec: Float)
 
     fun changeActiveScreen(newScreen: Screen?) {
         // 0. Cas "réouverture" de l'écran. ** Utile, superflu ?? **
@@ -143,6 +172,9 @@ abstract class AppRootBase(val coqAct: CoqActivity) : RootNode(null, null)
         // 3. Ouverture du nouvel écran.
         setActiveScreen(newScreen)
     }
+
+    /** Variante de changeActiveScreen où on pases le class elle-même:
+     * e.g. MyScreen::class.java. */
     fun <T: Screen> changeActiveScreenToNewOfClass(screenType: Class<T>) {
         closeActiveScreen()
         val test = screenType.constructors.first().newInstance(this)
@@ -163,6 +195,13 @@ abstract class AppRootBase(val coqAct: CoqActivity) : RootNode(null, null)
         activeScreen = newScreen
         newScreen.openAndShowBranch()
         changeScreenAction?.invoke()
+    }
+
+    class FrontScreen(root: AppRootBase) : Screen(root) {
+        init {
+            addFlags(Flag1.dontAlignScreenElements or Flag1.exposed
+                    or Flag1.show or Flag1.persistentScreen)
+        }
     }
 }
 

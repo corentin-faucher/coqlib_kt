@@ -19,29 +19,43 @@ object FontManager {
     private val defaultRatio = Vector2(0.3f, 0.60f)
     /** La police de caractère à utiliser par défaut lorsque l'on crée la texture d'une string.
      * Voir Texture drawAsString. */
-    var currentTypeface: Typeface = defaultTypeface
+    private var currentTypeface: Typeface = defaultTypeface
         private set
-    var currentRatios: Vector2 = defaultRatio
+    private var currentRatios: Vector2 = defaultRatio
         private set
+
     /** Mettre à jour la police par défaut pour dessiner les strings. */
     fun setCurrent(@FontRes fontRes: Int?, ctx: Context) {
+        val oldTypeface = currentTypeface
         if(fontRes == null) {
             currentTypeface = defaultTypeface
             currentRatios = defaultRatio
+        } else {
+            currentTypeface = ResourcesCompat.getFont(ctx, fontRes) ?: run {
+                printwarning("Cannot load font for resId $fontRes.")
+                defaultTypeface
+            }
+            currentRatios = ratiosOfFont[fontRes] ?: defaultRatio
+        }
+        if(currentTypeface == oldTypeface)
             return
-        }
-        currentTypeface = ResourcesCompat.getFont(ctx, fontRes) ?: run {
-            printwarning("Cannot load font for resId $fontRes.")
-            defaultTypeface
-        }
-        currentRatios = ratiosOfFont[fontRes] ?: defaultRatio
+        Texture.redrawAllStrings()
     }
-    fun getTypefaceAndRatio(@FontRes fontRes: Int?, ctx: Context?) : Pair<Typeface, Vector2> {
-        if(fontRes == null)
-            return Pair(Typeface.create("monospace", Typeface.NORMAL), currentRatios)
-//            return Pair(currentTypeface, currentRatios)
-        if(ctx == null) {
-            printerror("No context to get typeface.")
+    fun getNameOfFont(@FontRes fontRes: Int) : String
+        = nameOfFont[fontRes] ?: "Error: no font with id $fontRes."
+    fun getFontNamesAndIdsForLanguage(language: Language) : List<Pair<String, Int> > {
+        val fontIdList = fontsOfLanguage[language] ?: availableFontsDefault
+        return fontIdList.map { fontId ->
+            (nameOfFont[fontId] ?: "Err.: Font no $fontId") to fontId
+        }
+    }
+
+    internal fun getTypefaceAndRatio(@FontRes fontRes: Int?, ctx: Context?) : Pair<Typeface, Vector2> {
+        // TODO check...
+        if(fontRes == null || ctx == null) {
+//            return Pair(Typeface.create("monospace", Typeface.NORMAL), currentRatios)
+            if (ctx == null)
+                printerror("No context to get typeface.")
             return Pair(currentTypeface, currentRatios)
         }
         val typeface = ResourcesCompat.getFont(ctx, fontRes) ?: run {
@@ -51,6 +65,37 @@ object FontManager {
         val ratios = ratiosOfFont[fontRes] ?: defaultRatio
         return Pair(typeface, ratios)
     }
+    private val nameOfFont: Map<Int, String> = mapOf(
+        /** Pour l'arabe */
+        R.font.amiri to "Amiri",
+        R.font.reem_kufi to "Reem Kufi",
+        R.font.tajawal_medium to "Tajawal",
+        /** Pour le coréen */
+        R.font.jua to "Jua",
+        R.font.nanum_gothic to "Nanum Gothic",
+        R.font.nanum_myeongjo to "Nanum Gothic",
+        R.font.nanum_pen_script to "Nanum Pen Script",
+        /** Pour le japonais */
+        R.font.m_plus_rounded_1c_medium to "M PLUS Rounded", // jap, viet, latin
+        R.font.noto_sans to "Noto Sans",      // jap ?
+        R.font.noto_serif to "Noto Serif",     // jap ?
+        R.font.nunito_sans to "Nunito Sans",    // jap ?
+        R.font.rocknroll_one to "RocknRoll One",  // jap, no viet, latin
+        R.font.yusei_magic to "Yusei Magic",    // no viet, jap, latin
+        /** Pour le chinois ? (pas de chinois pour Android de toute façon...) */
+        // ...
+        /** Standard (latin) */
+        R.font.comic_neue to "Comic Neue",    // no viet
+        R.font.courier_prime to "Courier Prime", // no viet
+        R.font.great_vibes to "Great Vibes",   // no viet
+        R.font.kite_one to "Kite One",      // no viet
+        R.font.luciole to "Luciole",        // no viet
+        R.font.neucha to "Neucha",         // no viet
+        R.font.open_dyslexic3 to "Open Dyslexic", //
+        R.font.schoolbell to "Schoolbell",     // no viet
+        R.font.special_elite to "Special Elite",  // no viet
+        R.font.tinos to "Tinos",          //
+    )
     /** Fine tuning pour le cadrage des fonts... TODO : À réviser dans vrai situation... */
     private var ratiosOfFont: MutableMap<Int, Vector2> = mutableMapOf(
         /** Pour l'arabe */

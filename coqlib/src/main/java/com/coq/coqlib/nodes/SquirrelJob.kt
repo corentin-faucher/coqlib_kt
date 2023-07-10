@@ -246,15 +246,10 @@ fun Node.reshapeBranch() {
     }
 }
 
-/** Recherche d'un noeud sélectionnable dans le noeud présent. Retourne nil si rien trouvé. */
-fun Node.searchBranchForSelectable(absPos: Vector2, nodeToAvoid: Node?) : Node? {
-    val relPos = absPos.inReferentialOf(parent)
-    return searchBranchForSelectablePrivate(relPos, nodeToAvoid)
-}
-
-/*-- Private stuff --*/
-private fun Node.searchBranchForSelectablePrivate(relPos: Vector2,
-                                                  nodeToAvoid: Node?) : Node? {
+/** Recherche d'un noeud sélectionnable dans le noeud présent.
+ * La position est dans le référentiel du noeud présent (comme les enfants du noeud présent).
+ * Retourne nil si rien trouvé. */
+fun Node.searchBranchForSelectableAt(relPos: Vector2, nodeToAvoid: Node?) : Node? {
     val sq = Squirrel(this, relPos, ScaleInit.Ones)
     var candidate: Node? = null
 

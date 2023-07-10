@@ -25,63 +25,59 @@ fun Node.addFrame(
 fun Node.addFrameAndString(
     frameTex: Texture, strTex: Texture,
     deltaRatio: Float = 0.2f, framing: Framing = Framing.center
-) {
+) : Pair<Frame, StringSurface>
+{
     val frame = Frame(this, framing, deltaRatio * height.defPos, frameTex,
         0f, Flag1.giveSizesToParent
     )
-    frame.addLittleBroString(strTex, this.width.defPos, this.height.defPos)
+    val string = frame.addLittleBroString(strTex, this.width.defPos, this.height.defPos)
+    return frame to string
 }
 /** Convenience extensions */
 fun Node.addFrameAndString(
     @DrawableRes frmResId: Int, cstString: String,
     deltaRatio: Float = 0.2f, framing: Framing = Framing.center
-) {
-    addFrameAndString(Texture.getPng(frmResId), Texture.getConstantString(cstString), deltaRatio, framing)
+) : Pair<Frame, StringSurface>
+{
+    return addFrameAndString(Texture.getPng(frmResId), Texture.getConstantString(cstString), deltaRatio, framing)
 }
 fun Node.addFrameAndString(
     @DrawableRes frmResId: Int, @StringRes locStrResId: Int,
     deltaRatio: Float = 0.2f, framing: Framing = Framing.center
-) {
-    addFrameAndString(Texture.getPng(frmResId), Texture.getLocalizedString(locStrResId), deltaRatio, framing)
+) : Pair<Frame, StringSurface>
+{
+    return addFrameAndString(Texture.getPng(frmResId), Texture.getLocalizedString(locStrResId), deltaRatio, framing)
 }
 
 
 
 class FramedString : Node {
-    val string : StringSurface
-        get() = lastChild as StringSurface
     val frame: Frame
-        get() = firstChild as Frame
+    val string : StringSurface
 
-
-
-    constructor(ref: Node?,
-                frameTex: Texture, strTex: Texture,
-                x: Float, y: Float, width: Float, height: Float,
-                framing: Framing = Framing.center,
-                flags: Long = 0L, deltaRatio: Float = 0.2f, setWidth: Boolean = false
+    constructor(
+        ref: Node?, frameTex: Texture, strTex: Texture,
+        x: Float, y: Float, width: Float, height: Float, flags: Long = 0L,
+        framing: Framing = Framing.center, deltaRatio: Float = 0.2f, setWidth: Boolean = false
     ) : super(ref, x, y, width, height, 0f, flags) {
         val delta = max(0.01f, min(deltaRatio, 0.45f)) * height
-        val frame = Frame(this, framing, delta, frameTex, 0f, 0L)
-        val str = frame.addLittleBroString(strTex, width, height)
+        frame = Frame(this, framing, delta, frameTex)
+        string = frame.addLittleBroString(strTex, width, height)
         if(setWidth)
-            str.setWidth(true)
+            string.setWidth(true)
     }
-    /** Convenience init */
-    constructor(ref: Node?,
-                @DrawableRes frameResId: Int, cstString: String,
-                x: Float, y: Float, width: Float, height: Float,
-                framing: Framing = Framing.center,
-                flags: Long = 0L, deltaRatio: Float = 0.2f, setWidth: Boolean = false
-    ) : this(ref, Texture.getPng(frameResId), Texture.getConstantString(cstString), x, y, width, height,
-        framing, flags, deltaRatio, setWidth)
-    constructor(ref: Node?,
-                @DrawableRes frameResId: Int, @StringRes locStringId: Int,
-                x: Float, y: Float, width: Float, height: Float,
-                framing: Framing = Framing.center,
-                flags: Long = 0L, deltaRatio: Float = 0.2f, setWidth: Boolean = false
-    ) : this(ref, Texture.getPng(frameResId), Texture.getLocalizedString(locStringId), x, y, width, height,
-        framing, flags, deltaRatio, setWidth)
+
+    constructor(
+        ref: Node?, @DrawableRes pngId: Int, strTex: Texture,
+        x: Float, y: Float, width: Float, height: Float, flags: Long = 0L,
+        framing: Framing = Framing.center, deltaRatio: Float = 0.2f, setWidth: Boolean = false
+    ) : super(ref, x, y, width, height, 0f, flags) {
+        val delta = max(0.01f, min(deltaRatio, 0.45f)) * height
+        frame = Frame(this, framing, delta, pngId, flags = Flag1.giveSizesToParent)
+        string = frame.addLittleBroString(strTex, width, height)
+        if(setWidth)
+            string.setWidth(true)
+    }
 }
 
 

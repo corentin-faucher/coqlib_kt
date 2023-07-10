@@ -37,7 +37,8 @@ import kotlin.math.min
 //    }
 */
 
-/** Affichage d'un message d'erreur. */
+/** Affichage d'un message d'erreur.
+ * Utilisez tag:🐔coq dans le log pour ne voir que c'est messages de debuging. */
 fun printerror(message: String, e: IOException? = null, depth: Int = 3) {
     val stes = Exception().stackTrace
     val mes = message + (e?.localizedMessage?.let { ", $it" } ?: "")
@@ -102,12 +103,11 @@ fun printhere(depth: Int = 1) {
 }
 
 /*-- Extensions pratiques... --*/
-
+/** Nettoie une map de WeakReference des pointeurs null. */
 fun <K, T> MutableMap<K, WeakReference<T>>.strip() {
-    forEach { (k, v) ->
-        if(v.get() == null) {
-            this.remove(k)
-        }
+    val toRemoves = filter { it.value.get() == null }
+    for(toRemove in toRemoves) {
+        remove(toRemove.key)
     }
 }
 

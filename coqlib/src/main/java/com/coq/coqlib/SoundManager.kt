@@ -12,6 +12,7 @@ import kotlin.math.pow
 
 object SoundManager {
     var isMute = false
+    var rate: Float = 0.5f  // Vitesse du débit de la parole. (entre 0 et 1)
 
     private var soundPool: SoundPool? = null
     private var audioManager: AudioManager? = null
@@ -20,13 +21,21 @@ object SoundManager {
     private var ctx: WeakReference<Context> = WeakReference(null)
     /** Les volumes pour différentes sortes de sons,
      * e.g. "error sounds",  "monster sounds", "background sounds", ... */
-    var volumes: FloatArray = FloatArray(16) { 1f }
-        private set
+    private var volumes: FloatArray = FloatArray(16) { 1f }
 
+    fun getVolume(id: Int) : Float {
+        if(id >= volumes.size) {
+            printerror("Overflow volumeId $id.")
+            return 0f
+        }
+        return volumes[id]
+    }
+    fun getAllVolumes() : FloatArray = volumes
     fun setVolume(newVolume: Float, id: Int) {
         if(id >= volumes.size)
             printerror("Overflow volumeId $id.")
         volumes[id] = max(0f, min(1f, newVolume))
+        printdebug("volume id $id, set to ${volumes[id]}.")
     }
     fun setAllVolumes(newVolumes: FloatArray) {
         val count = min(volumes.size, newVolumes.size)
@@ -40,10 +49,11 @@ object SoundManager {
     /** Charge le son (wav dans res/raw, i.e. R.raw...).
      * volumeId est le volume à utiliser quand ce son est joué.
      * Retourne le soundId de android.media.SoundPool. */
-    fun initSound(@RawRes soundResId: Int, volumeId: Int) : Int
+    private fun initSound(@RawRes soundResId: Int, volumeId: Int) : Int
     {
         soundPoolIdOfRawRes[soundResId]?.let { soundPoolId ->
-            printwarning("$soundResId deja init")
+            // Si déjà init, juste mettre à jour le volume id.
+            volumeIdOfSoundPoolId[soundPoolId] = volumeId
             return soundPoolId
         }
         val ctx = SoundManager.ctx.get() ?: run {
@@ -65,7 +75,7 @@ object SoundManager {
         }
     }
     /** La fonction par défaut pour jouer les sons. */
-    fun playWithSoundPoolId(soundPoolID: Int, pitch: Short = 0, volume: Float = 1f) {
+    fun playWithSoundPoolId(soundPoolID: Int, pitch: Int = 0, volume: Float = 1f) {
         if (isMute) return
         if ( soundPoolID <0) {
             printerror("Son pas loadé."); return}
@@ -73,7 +83,7 @@ object SoundManager {
             volumes.getOrElse(volId) { 1f } * volume } ?: volume
         val maxVolume = audioManager?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ?: 1
         val currVolume = audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: 0
-        val usedVolume = max(1f, min(0f, volumeIn)) * currVolume.toFloat() / maxVolume.toFloat()
+        val usedVolume = min(1f, max(0f, volumeIn)) * currVolume.toFloat() / maxVolume.toFloat()
         // Ajustement pour Android... (trop fort pour des volume bas) -> Courbe parabolique.
         val volume2 = 0.8f *( (1f - 0.10f)*usedVolume*usedVolume + 0.10f*usedVolume )
 //        printdebug("maxVol $maxVolume, currVolume $currVolume, usedVolume $usedVolume, adjusted $volume2")
@@ -81,7 +91,7 @@ object SoundManager {
     }
 
     /** Fonction "helper" pour jouer un son avec son res id. */
-    fun playWithResId(@RawRes resID: Int, pitch: Short = 0, volume: Float = 1f) {
+    fun playWithResId(@RawRes resID: Int, pitch: Int = 0, volume: Float = 1f) {
         soundPoolIdOfRawRes[resID]?.let { soundPoolID ->
             playWithSoundPoolId(soundPoolID, pitch, volume)
         } ?: run{ printerror("Son $resID non chargé.") }

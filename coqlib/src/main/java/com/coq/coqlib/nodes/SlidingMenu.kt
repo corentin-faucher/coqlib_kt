@@ -21,7 +21,7 @@ import kotlin.math.round
  * checkItem : Methode/ext de noeud pour mettre à jour les noeud-boutons.
  * getIndicesRangeAtOpening : exécuter à l'ouverture du sliding menu et retourne le range attendu des items.
  * getPosIndex : la position de l'indice où on est centré à l'ouverture. */
-class SlidingMenu : Node, Draggable, Scrollable
+open class SlidingMenu : Node, Draggable, Scrollable
 {
     /*-- fields --*/
     var openIndex: Int = 0 // Seul variable publique : l'id de l'item où on doit être à l'ouverture.
@@ -60,16 +60,6 @@ class SlidingMenu : Node, Draggable, Scrollable
         addStructure()
     }
     override fun clone() = SlidingMenu(this)
-    private fun addStructure() {
-        makeSelectable()
-        val w = width.realPos
-        val h = height.realPos
-        val scrollBarWidth = max(w, h) * 0.025f
-        back = Frame(this, Framing.inside, scrollBarWidth, R.drawable.sliding_menu_back)
-        menu = Node(this, -0.5f*scrollBarWidth, 0f,
-            w - scrollBarWidth, h, 20f, Flag1.selectableRoot)
-        scrollBar = SlidingMenuScrollBar(this, scrollBarWidth)
-    }
     /*-- Edition du SlidingMenu. Après modification des items, il faut recaller "open". --*/
     fun addItem(node: Node) {
         node.simpleMoveToParent(menu, false)
@@ -124,6 +114,27 @@ class SlidingMenu : Node, Draggable, Scrollable
             snap = true, fix = false)
         checkItemsVisibility(true)
     }
+    fun scroll(key: KeyboardInput) {
+        val deltaY = when(key.scancode) {
+            Scancode.up -> -itemHeight
+            Scancode.down -> +itemHeight
+            else -> 0f
+        }
+        setMenuYPos(menu.y.realPos + deltaY, snap = true, fix = false)
+        checkItemsVisibility(true)
+    }
+
+    private fun addStructure() {
+        makeSelectable()
+        val w = width.realPos
+        val h = height.realPos
+        val scrollBarWidth = max(w, h) * 0.025f
+        back = Frame(this, Framing.inside, scrollBarWidth, R.drawable.sliding_menu_back, flags = Flag1.frameOfParent)
+        menu = Node(this, -0.5f*scrollBarWidth, 0f,
+            w - scrollBarWidth, h, 20f, Flag1.selectableRoot)
+        scrollBar = SlidingMenuScrollBar(this, scrollBarWidth)
+    }
+    // TODO : Ajouter un fun scroll(key: KeyboardInput) ? Pour réagir au touches up et down ?
     /*-- Draggable --*/
     // Sauvegarde des positions et vitesses...
     private var yInitToMenu: Float = 0f
@@ -134,10 +145,15 @@ class SlidingMenu : Node, Draggable, Scrollable
     private val ypSmooth = SmoothPos(0f, 4f) // La vitesse lors du "fling"
     private val deltaT = Chrono()      // Delta t pour estimer la vitesse.
     private val flingChrono = Chrono() // Temps de "vol"
+    private var touchedButton: Button? = null
+    private var didMove = false
     override fun grab(posInit: Vector2) {
+        val relPos = posInit.inReferentialOf(this)
+        touchedButton = searchBranchForSelectableAt(relPos, null) as? Button
+        didMove = false
         flingChrono.stop()
-        y0 = posInit.y
-        y1 = posInit.y
+        y0 = relPos.y
+        y1 = relPos.y
         yp0 = 0f
         yp1 = 0f
         deltaT.start()
@@ -146,9 +162,11 @@ class SlidingMenu : Node, Draggable, Scrollable
     /** Scrolling vertical de menu. (déplacement en cours) */
     override fun drag(posNow: Vector2) {
         if (deltaT.elapsedMS < 10L) return
+        didMove = true
         // Estimation de la vitesse
+        val relPos = posNow.inReferentialOf(this)
         y0 = y1                     // Last y position.
-        y1 = posNow.y               // New y position.
+        y1 = relPos.y               // New y position.
         yp0 = yp1                   // Last y speed
         yp1 = (y1 - y0) / deltaT.elapsedSec  // New speed.
         deltaT.start()              // (Remettre le chrono à zéro.)
@@ -158,6 +176,11 @@ class SlidingMenu : Node, Draggable, Scrollable
         checkItemsVisibility(true)
     }
     override fun letGo() {
+        // 0. Si pas bouger essayer d'activer le bouton touché à "grab".
+        if(!didMove)
+            touchedButton?.action()
+        touchedButton = null
+        didMove = false
         // 1. Estimé de la vitesse (moyenne des deux dernière)
         val yp = (yp1 + yp0) / 2f
         // 2. Cas stop (bouge pas très vite). Pas de "fling", snap ici.

@@ -158,7 +158,6 @@ class Texture {
         }
         glID = textureIdArrayTmp[0]
         // 2. S'il y a un mini préchargé, on le met temporairement
-//        var isMini = false
         minisBitmaps[resId]?.let { mini ->
             uploadBitmapToGLTexture(mini, false)
             width = mini.width.toFloat()
@@ -166,8 +165,13 @@ class Texture {
 //            isMini = true
 //            printdebug("Setting $name with mini $width.")
         } ?:
-        // Sinon charger au moins les dimensions
+        // Sinon charger au moins les dimensions et mettre le transparent en attendant.
         run {
+            miniTranspBitmap?.let {
+                uploadBitmapToGLTexture(it, false)
+            } ?: run {
+                printerror("miniTransparent bitmap not init.")
+            }
             val dim_options = BitmapFactory.Options().apply {
                 inScaled = false
                 inJustDecodeBounds = true // -> Juste prendre les dimensions pour l'instant.
@@ -230,7 +234,7 @@ class Texture {
                 weak_tex.get()?.let { texture ->
                     return texture
                 } ?: run {
-                    printdebug("Texture has been deallocated (redrawing...)")
+//                    printdebug("Texture has been deallocated (redrawing...)")
                 }
             }
             val newPng = Texture(resID, "png", TextureType.Png, null)
@@ -260,6 +264,8 @@ class Texture {
                     }
                 }
             }
+            // Aussi le bitmap par défaut -> miniTransparent
+            miniTranspBitmap = getBitmapOf(R.drawable._transparent, false)
             isInit = true
             loaded = true
         }
@@ -277,6 +283,7 @@ class Texture {
             currentTex = null
         }
         internal fun suspend() {
+            // TODO : Bogue java.util.ConcurrentModificationException ?
             if(!loaded) {
                 printwarning("Textures already unloaded.")
                 return
@@ -310,18 +317,28 @@ class Texture {
             }
             loaded = true
         }
+        // Changement de fonts
+        internal fun redrawAllStrings() {
+            allStringTextures.strip()
+            allStringTextures.forEach { wt ->
+                wt.get()?.drawAsString() ?: run {
+                    printerror("Still got null ref for string ?")
+                }
+            }
+        }
         // Pour changement de langue...
         internal fun updateAllLocalizedStrings() {
             val locCtx = Language.currentCtx ?: run {
                 printerror("No localized context.")
                 return
             }
+            allLocalizedStringTextures.strip()
             allLocalizedStringTextures.forEach { (resId, wt) ->
                 wt.get()?.let { tex ->
                     tex.name = locCtx.getString(resId)
                     tex.drawAsString()
                 } ?: run {
-                    allLocalizedStringTextures.remove(resId)
+                    printerror("Still got null ref for resId $resId?")
                 }
             }
         }
@@ -362,9 +379,8 @@ class Texture {
 
         private fun getBitmapOf(@DrawableRes resId: Int, asMini: Boolean) : Bitmap? {
             val resources = ctx.get()?.resources ?: throw Exception("No context for Texture ?")
-            val drawable = resources.getDrawableForDensity(resId,
-                if(asMini) DisplayMetrics.DENSITY_LOW else DisplayMetrics.DENSITY_MEDIUM,
-                null
+            val density = if(asMini) DisplayMetrics.DENSITY_LOW else DisplayMetrics.DENSITY_MEDIUM
+            val drawable = resources.getDrawableForDensity(resId, density, null
             ) ?: run {
                 printerror("Cannot load drawable for id $resId.")
                 return null
@@ -383,24 +399,25 @@ class Texture {
         private val allLocalizedStringTextures = mutableMapOf<Int, WeakReference<Texture> >()
         private val allPngTextures = mutableMapOf<Int, WeakReference<Texture> >()
         private val minisBitmaps = mutableMapOf<Int, Bitmap>()
+        private var miniTranspBitmap: Bitmap? = null
         val defaultTiling = Tiling(1, 1)
         /** Les pngs inclus par défaut avec coqlib. */
         private var tilingOfDrawableRes: MutableMap<Int, Tiling> = mutableMapOf(
             R.drawable.bar_gray to defaultTiling,
             R.drawable.bar_in to defaultTiling,
-            R.drawable.digits_black to Tiling(12, 2),
-            R.drawable.disks to Tiling(4, 4),
-            R.drawable.frame_gray_back to defaultTiling,
-            R.drawable.frame_mocha to defaultTiling,
-            R.drawable.frame_red to defaultTiling,
-            R.drawable.frame_white_back to defaultTiling,
-            R.drawable.language_flags to Tiling(4, 4),
+            R.drawable.digits_black to Tiling(12, 2, withMini = true),
+            R.drawable.disks to Tiling(4, 4, withMini = true),
+            R.drawable.frame_gray_back to Tiling(1, 1, withMini = true),
+            R.drawable.frame_mocha to Tiling(1, 1, withMini = true),
+            R.drawable.frame_red to Tiling(1, 1, withMini = true),
+            R.drawable.frame_white_back to Tiling(1, 1, withMini = true),
+            R.drawable.language_flags to Tiling(4, 4, withMini = true),
             R.drawable.scroll_bar_back to Tiling(1, 3),
             R.drawable.scroll_bar_front to Tiling(1, 3),
             R.drawable.sliding_menu_back to defaultTiling,
             R.drawable.sparkle_stars to Tiling(3, 2),
-            R.drawable.switch_back to defaultTiling,
-            R.drawable.switch_front to defaultTiling,
+            R.drawable.switch_back to Tiling(1, 1, withMini = true),
+            R.drawable.switch_front to Tiling(1, 1, withMini = true),
             R.drawable.test_frame to Tiling(1, 1, false),
             R.drawable.the_cat to Tiling(1, 1, false),
             R.drawable.white to defaultTiling,

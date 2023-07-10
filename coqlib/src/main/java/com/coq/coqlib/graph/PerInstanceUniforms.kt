@@ -15,6 +15,7 @@ class PerInstanceUniforms {
     var i: Float    // Tile
     var j: Float
     var emph: Float // Facteur d'emphase. [0, 1]
+    var show: Float // Facteur d'affichage. [0, 1]
     var flags: Int  // Autres flags d'affichage, e.g. "one sided".
 
     constructor() {
@@ -22,7 +23,8 @@ class PerInstanceUniforms {
         i = 0.0f
         j = 0.0f
         color = floatArrayOf(1f, 1f, 1f, 1f) // alpha pour l'apparition de l'objet (0,caché) -> (1,montré)
-        emph = 0.0f
+        emph = 0f
+        show = 0f
         flags = 0
     }
 
@@ -32,6 +34,7 @@ class PerInstanceUniforms {
         j = piu.j
         color = piu.color.copyOf()
         emph = piu.emph
+        show = piu.show
         flags = piu.flags
     }
 
@@ -42,6 +45,7 @@ class PerInstanceUniforms {
         GLES20.glUniform2f(piuTexIJId, i, j)
         GLES20.glUniform4fv(piuColorID, 1, color, 0)
         GLES20.glUniform1f(piuEmphID, emph)
+        GLES20.glUniform1f(piuShowID, show)
         GLES20.glUniform1i(piuFlagsID, flags)
     }
 
@@ -54,6 +58,7 @@ class PerInstanceUniforms {
             piuTexIJId = GLES20.glGetUniformLocation(programID, "texIJ")
             piuColorID = GLES20.glGetUniformLocation(programID, "color")
             piuEmphID  = GLES20.glGetUniformLocation(programID, "emph")
+            piuShowID  = GLES20.glGetUniformLocation(programID, "show")
             piuFlagsID = GLES20.glGetUniformLocation(programID, "flags")
         }
         // ID OpenGL des "per instance uniforms"
@@ -61,6 +66,7 @@ class PerInstanceUniforms {
         private var piuTexIJId: Int = -1
         private var piuColorID: Int = -1
         private var piuEmphID: Int = -1
+        private var piuShowID: Int = -1
         private var piuFlagsID: Int = -1
     }
 }
