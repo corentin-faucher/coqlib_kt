@@ -32,7 +32,6 @@ fun Timer.scheduleGL(delaySec: Float, r: Runnable) {
     }
 }
 
-// TODO : Vérifier les utilisation de scheduleAtFixedRate...
 /** Attention : peut causer des memory leak. S'assurer de cancel() le timer. */
 fun Timer.scheduleAtFixedRateGL(delayMS: Long, periodMS: Long, r: Runnable) {
     val view = CoqActivity.currentView.get() ?: run {

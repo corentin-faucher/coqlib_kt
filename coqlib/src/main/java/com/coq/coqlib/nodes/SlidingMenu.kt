@@ -134,7 +134,6 @@ open class SlidingMenu : Node, Draggable, Scrollable
             w - scrollBarWidth, h, 20f, Flag1.selectableRoot)
         scrollBar = SlidingMenuScrollBar(this, scrollBarWidth)
     }
-    // TODO : Ajouter un fun scroll(key: KeyboardInput) ? Pour réagir au touches up et down ?
     /*-- Draggable --*/
     // Sauvegarde des positions et vitesses...
     private var yInitToMenu: Float = 0f
@@ -233,7 +232,7 @@ open class SlidingMenu : Node, Draggable, Scrollable
             return
         }
         // 1. Ajuster la visibilité des items
-        val yActual = menu.y.realPos // TODO: Toujours realPos ??
+        val yActual = menu.y.realPos
         do {
             val toShow = abs(yActual + sq.pos.y.realPos) < 0.5f * height.realPos
 

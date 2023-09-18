@@ -36,8 +36,12 @@ class Renderer(private val activity: CoqActivity,
         set(value) {
             RenderingChrono.isPaused = value
             AppChrono.isPaused = value
-            if(!value && value != field)
-                root.didResume(AppChrono.lastSleepTimeSec)
+            if(value != field) {
+                if(value)
+                    root.willSleep()
+                else
+                    root.didResume(AppChrono.lastSleepTimeSec)
+            }
             field = value
         }
 
@@ -80,7 +84,6 @@ class Renderer(private val activity: CoqActivity,
         PerInstanceUniforms.init(programID)
         // 6. Init de la structure (à faire après les autres init)
         root = activity.getAppRoot()
-        printdebug("OpenGL surface created.")
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -96,6 +99,10 @@ class Renderer(private val activity: CoqActivity,
     }
 
     override fun onDrawFrame(gl: GL10?) {
+        if(RenderingChrono.shouldSleep) {
+            isPaused = true
+            Thread.sleep(500)
+        }
         // 1. Mise à jour de la couleur de fond.
         GLES20.glClearColor(root.smR.pos, root.smG.pos, root.smB.pos, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
@@ -188,10 +195,18 @@ class Renderer(private val activity: CoqActivity,
             KeyEvent.KEYCODE_ESCAPE ->
                 (root.activeScreen as? Escapable)?.let { it.escapeAction(); return }
         }
-        (root.activeScreen as? KeyResponder)?.keyDown(key)
+        val kr = (root.activeScreen as? KeyResponder) ?: return
+        if(Scancode.isMod(key.scancode))
+            kr.modifiersChangedTo(key.keymod)
+        else
+            kr.keyDown(key)
     }
     internal fun onKeyUp(key: KeyboardInput) {
-        (root.activeScreen as? KeyResponder)?.keyUp(key)
+        val kr = (root.activeScreen as? KeyResponder) ?: return
+        if(Scancode.isMod(key.scancode))
+            kr.modifiersChangedTo(key.keymod)
+        else
+            kr.keyUp(key)
     }
 
     /*-- Private stuff --*/

@@ -4,8 +4,7 @@ package com.coq.coqlib
 object SpChar {
     const val delete: Char = '\b'
     const val tab: Char = '\t'
-    // TODO : vérifier si Android utilise '\n' -> 10 ou '\r' -> 13
-    const val return_: Char = '\r'
+    const val return_: Char = '\r'  // 13
     // On utilise return ... const val newline: Char = '\n'
     const val space: Char = ' '
     const val nobreakSpace: Char = ' '

@@ -31,7 +31,6 @@ class TextViewWrapper(
                 .inflate(R.layout.scroll_text_view, null, false) as TextView
             textView.x = xy.x
             textView.y = xy.y
-            printdebug("TextView at ${xy.x}, ${xy.y}, sized ${wh.x}, ${wh.y}.")
             textView.text = Html.fromHtml(
                 htmlText, Html.FROM_HTML_MODE_LEGACY
             )

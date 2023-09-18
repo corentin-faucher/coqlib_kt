@@ -6,7 +6,6 @@ import com.coq.coqlib.Flagable
 import com.coq.coqlib.maths.SmoothPos
 import com.coq.coqlib.maths.Vector2
 import com.coq.coqlib.graph.PerInstanceUniforms
-import com.coq.coqlib.printdebug
 import com.coq.coqlib.printerror
 import kotlin.math.abs
 

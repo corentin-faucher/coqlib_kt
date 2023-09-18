@@ -318,9 +318,9 @@ open class LanguageSurface : Surface {
 }
 
 enum class Framing {
-    outside,
+    outside,  // Cadre "à l'extérieur" par rapport au rectangle w*h.
     center,
-    inside
+    inside    // Cadre inclu à l'intérieur du rectangle w*h.
 }
 
 class Bar : Surface {
@@ -351,13 +351,14 @@ class Bar : Surface {
             return
         }
         val smallDeltaX: Float = when(framing) {
-            Framing.outside -> max(0f, width/2f - 2f * delta)
+            Framing.inside -> max(0f, width/2f - 2f * delta)
             Framing.center -> max(0f, width/2f - delta)
-            Framing.inside -> width/2f
+            Framing.outside -> width/2f
         }
-        this.width.set(2f * (smallDeltaX + 2f * delta), fix)
+        val newDeltaX = smallDeltaX + 2f * delta
+        this.width.set(2f * newDeltaX, fix)
         (mesh as BarMesh).updateWithCenterRatio(
-            smallDeltaX / (smallDeltaX + 2f * delta)
+            smallDeltaX / newDeltaX
         )
     }
 

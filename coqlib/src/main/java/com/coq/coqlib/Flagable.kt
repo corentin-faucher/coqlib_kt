@@ -11,6 +11,10 @@ interface Flagable {
         flags = flags or toAdd
     }
 
+    fun toggleFlag(toToggle: Long) {
+        flags = if(flags and toToggle != 0L) flags and toToggle.inv() else flags or toToggle
+    }
+
     fun addRemoveFlags(toAdd: Long, toRemove: Long) {
         flags = (flags or toAdd) and toRemove.inv()
     }

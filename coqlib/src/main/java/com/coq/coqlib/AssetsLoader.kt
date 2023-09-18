@@ -1,12 +1,10 @@
 package com.coq.coqlib
 
 import android.content.Context
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.IOException
 
 /*== NOTE : Pour la lecture de fichier on utilise "use" qui "close" les input/output streams. */
@@ -19,7 +17,7 @@ fun Context.readAssetsString(fileName: String, showError: Boolean = true) : Stri
             }
         }
     } catch (e : IOException) {
-        if(showError) printerror("Cannot load \"$fileName\".", e)
+        if(showError) printerror(e.toString(), depth = 4)
         null
     }
 }
@@ -62,35 +60,43 @@ fun File.readFileString(showError: Boolean = true): String? {
 //}
 
 fun JSONObject.getIntOrNull(name: String, showError: Boolean = false) : Int? {
-    val theInt = if(isNull(name)) null
-        else get(name) as? Int
-    if(theInt == null && showError)
-        printerror("No int for $name.")
-    return theInt
+    if(isNull(name)) return null
+    return try {
+        getInt(name)
+    } catch(e: JSONException) {
+        if(showError) printerror(e.toString())
+        null
+    }
 }
 
-fun JSONObject.getFloatOrNull(name: String, showError: Boolean = false) : Float? {
-    val theFloat = if(isNull(name)) null
-        else get(name) as? Float
-    if(theFloat == null && showError)
-        printerror("No int for $name.")
-    return theFloat
+fun JSONObject.getDoubleOrNull(name: String, showError: Boolean = false) : Double? {
+    if(isNull(name)) return null
+    return try {
+        getDouble(name)
+    } catch(e: JSONException) {
+        if(showError) printerror(e.toString())
+        null
+    }
 }
 
 fun JSONObject.getStringOrNull(name: String, showError: Boolean = false) : String? {
-    val theString = if(isNull(name)) null
-        else get(name) as? String
-    if(theString == null && showError)
-        printerror("No string for $name.")
-    return theString
+    if(isNull(name)) return null
+    return try {
+        getString(name)
+    } catch(e: JSONException) {
+        if(showError) printerror(e.toString())
+        null
+    }
 }
 
 fun JSONObject.getBooleanOrNull(name: String, showError: Boolean = false) : Boolean? {
-    val theBool = if(isNull(name)) null
-        else get(name) as? Boolean
-    if(theBool == null && showError)
-        printerror("No bool for $name.")
-    return theBool
+    if(isNull(name)) return null
+    return try {
+        getBoolean(name)
+    } catch(e: JSONException) {
+        if(showError) printerror(e.toString())
+        null
+    }
 }
 
 fun JSONObject.getStringArrayOrNull(name: String, showError: Boolean = false) : Array<String>? {

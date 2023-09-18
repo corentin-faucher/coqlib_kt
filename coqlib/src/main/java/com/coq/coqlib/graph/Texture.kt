@@ -288,7 +288,6 @@ class Texture {
                 printwarning("Textures already unloaded.")
                 return
             }
-            printdebug("free all opengl textures")
             allStringTextures.strip()
             allStringTextures.forEach { weakTexture ->
                 weakTexture.get()?.freeOpenGLTexture()
@@ -308,7 +307,6 @@ class Texture {
                 printwarning("Textures already loaded.")
                 return
             }
-            printdebug("restoring all opengl textures")
             allStringTextures.forEach { weakTexture ->
                 weakTexture.get()?.drawAsString()
             }

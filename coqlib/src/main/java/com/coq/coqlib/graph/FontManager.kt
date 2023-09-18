@@ -51,7 +51,6 @@ object FontManager {
     }
 
     internal fun getTypefaceAndRatio(@FontRes fontRes: Int?, ctx: Context?) : Pair<Typeface, Vector2> {
-        // TODO check...
         if(fontRes == null || ctx == null) {
 //            return Pair(Typeface.create("monospace", Typeface.NORMAL), currentRatios)
             if (ctx == null)
@@ -96,7 +95,7 @@ object FontManager {
         R.font.special_elite to "Special Elite",  // no viet
         R.font.tinos to "Tinos",          //
     )
-    /** Fine tuning pour le cadrage des fonts... TODO : À réviser dans vrai situation... */
+    /** Fine tuning pour le cadrage des fonts...  */
     private var ratiosOfFont: MutableMap<Int, Vector2> = mutableMapOf(
         /** Pour l'arabe */
         R.font.amiri to Vector2(0.40f, 0.38f),         // Arabic

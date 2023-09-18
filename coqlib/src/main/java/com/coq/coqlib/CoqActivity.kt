@@ -13,11 +13,7 @@ import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.view.*
-import android.widget.RelativeLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
-import androidx.core.view.updateLayoutParams
 import com.coq.coqlib.graph.Renderer
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.nodes.AppRootBase
@@ -39,6 +35,23 @@ abstract class CoqActivity(private val appThemeID: Int,
     // (Ne peut pas être gardé par Language... Mais c'est Language qui l'utilise.)
     internal var localizedCtx: Context? = null
 
+    // Téléphone ? i.e. small screen
+    val isSmallScreen: Boolean
+        get() {
+            val conf = resources.configuration
+            return when(conf.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) {
+                Configuration.SCREENLAYOUT_SIZE_SMALL, Configuration.SCREENLAYOUT_SIZE_NORMAL -> true
+            else -> false
+            }
+        }
+    // laptop / chromeOS ?
+    val isChromeBook: Boolean
+        get() = packageManager.hasSystemFeature("org.chromium.arc.device_management")
+    // Mode sombre
+    val isDarkTheme: Boolean
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            resources.configuration.isNightModeActive else false
+
     abstract fun getExtraTextureTilings() : Map<Int, Texture.Tiling>?
     abstract fun getExtraSoundIdsWithVolumeIds() : Array<Pair<Int, Int>>?
     abstract fun getAppRoot() : AppRootBase
@@ -59,20 +72,16 @@ abstract class CoqActivity(private val appThemeID: Int,
         currentView = WeakReference(view)
 
         Language.initWith(this)
-
-        printdebug("Activity on create.")
     }
 
-//    override fun attachBaseContext(newBase: Context) {
-//        val language = if(nextBoolean()) "en" else "fr"
-//        Language.getContextForLanguage(newBase, language)
-//        super.attachBaseContext(newBase)
-//    }
+
+    /*-- Gestion des events ------------------------*/
+    /*-- Les events sont redirigés au renderer... --*/
+    /*-- (pour être dans la GL thread...)         --*/
 
     override fun onResume() {
         super.onResume()
         view.onResume()
-        printdebug("Activity on resume.")
     }
     override fun onPause() {
         super.onPause()
@@ -114,7 +123,6 @@ abstract class CoqActivity(private val appThemeID: Int,
         }
         return true
     }
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if(event == null || event.repeatCount > 0)
             return super.onKeyDown(keyCode, event)
@@ -140,7 +148,6 @@ abstract class CoqActivity(private val appThemeID: Int,
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE
 //        }
-        // TODO check pour les status en haut de l'écran...
 //        WindowInsetsControllerCompat(window, mainContainer)
     }
 
@@ -154,6 +161,12 @@ abstract class CoqActivity(private val appThemeID: Int,
     companion object {
         internal var currentView: WeakReference<GLSurfaceView> = WeakReference(null)
     }
+
+    //    override fun attachBaseContext(newBase: Context) {
+//        val language = if(nextBoolean()) "en" else "fr"
+//        Language.getContextForLanguage(newBase, language)
+//        super.attachBaseContext(newBase)
+//    }
 }
 
 

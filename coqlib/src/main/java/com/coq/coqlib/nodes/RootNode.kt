@@ -2,7 +2,6 @@
 
 package com.coq.coqlib.nodes
 
-import android.graphics.Rect
 import com.coq.coqlib.*
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.maths.*
@@ -152,6 +151,7 @@ abstract class AppRootBase : RootNode
 
     abstract fun willDrawFrame()
     abstract fun didResume(sleepingTimeSec: Float)
+    abstract fun willSleep()
 
     fun changeActiveScreen(newScreen: Screen?) {
         // 0. Cas "réouverture" de l'écran. ** Utile, superflu ?? **
@@ -175,7 +175,7 @@ abstract class AppRootBase : RootNode
 
     /** Variante de changeActiveScreen où on pases le class elle-même:
      * e.g. MyScreen::class.java. */
-    fun <T: Screen> changeActiveScreenToNewOfClass(screenType: Class<T>) {
+    fun changeActiveScreenToNewOfClass(screenType: Class<out Screen>) {
         closeActiveScreen()
         val test = screenType.constructors.first().newInstance(this)
         setActiveScreen(test as Screen)
