@@ -47,6 +47,9 @@ abstract class CoqActivity(private val appThemeID: Int,
     // laptop / chromeOS ?
     val isChromeBook: Boolean
         get() = packageManager.hasSystemFeature("org.chromium.arc.device_management")
+    // Keyboard ?
+    val isKeyboardConnected: Boolean
+        get() = resources.configuration.keyboard == Configuration.KEYBOARD_QWERTY
     // Mode sombre
     val isDarkTheme: Boolean
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
@@ -97,9 +100,7 @@ abstract class CoqActivity(private val appThemeID: Int,
         if(event == null) { return super.onTouchEvent(null) }
         Hoverable.inTouchScreen = event.source == InputDevice.SOURCE_TOUCHSCREEN
         when(event.action) {
-            MotionEvent.ACTION_DOWN -> view.queueEvent {
-                renderer.onDown(event.x, event.y)
-            }
+            MotionEvent.ACTION_DOWN -> view.queueEvent { renderer.onDown(event.x, event.y) }
             MotionEvent.ACTION_MOVE -> view.queueEvent { renderer.onMove(event.x, event.y) }
             MotionEvent.ACTION_CANCEL -> { printwarning("Cancel ? utile ?"); view.queueEvent { renderer.onUp() }}
             MotionEvent.ACTION_UP -> view.queueEvent { renderer.onUp() }
@@ -112,6 +113,7 @@ abstract class CoqActivity(private val appThemeID: Int,
         if(event == null) { return super.onTouchEvent(null) }
         Hoverable.inTouchScreen = event.source == InputDevice.SOURCE_TOUCHSCREEN
         when(event.action) {
+            MotionEvent.ACTION_BUTTON_PRESS -> view.queueEvent { renderer.onDown(event.x, event.y) }
             MotionEvent.ACTION_HOVER_MOVE -> view.queueEvent { renderer.onHovering(event.x, event.y) }
             MotionEvent.ACTION_SCROLL -> view.queueEvent { renderer.onScroll(
                     event.getAxisValue(MotionEvent.AXIS_VSCROLL)) }

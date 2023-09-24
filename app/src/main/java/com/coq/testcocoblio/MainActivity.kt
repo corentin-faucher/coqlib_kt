@@ -26,7 +26,7 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
         )
     }
 
-    override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>>? {
+    override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>> {
         return arrayOf(
             R.raw.arpeggio to 0,
             R.raw.clap_clap to 0,
@@ -56,9 +56,12 @@ class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
     override fun willDrawFrame() {
         // (pass, rien à mettre à jour...)
     }
-
     override fun didResume(sleepingTimeSec: Float) {
         // (pass, rien à faire après un retour)
+    }
+
+    override fun willSleep() {
+        // pass...
     }
 }
 
