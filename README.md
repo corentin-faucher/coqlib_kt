@@ -17,7 +17,7 @@ Librairie pour petit projet Android avec OpenGL.
 
 1. Créer un nouveau projet Android Studio : File -> New -> New Project.
 2. Sélectionner : Empty Activity ; "My Application" ; language "kotlin" ; -> finish. Laisser Gradle synchroniser...
-3. Ajouter coqlib au projet : Gradle Scripts -> settings.gradle, à la fin du fichier modifier pour :
+3. Ajouter coqlib au projet : Gradle Scripts (project) -> settings.gradle, à la fin du fichier modifier pour :
 ```
   include ':app', ':coqlib'
   // Mettre le chemin vers le module coqlib du projet coqlib.
@@ -30,25 +30,40 @@ Librairie pour petit projet Android avec OpenGL.
     ...
   }
 ```
-5. Vérifier aussi que les minSdk et targetSdk sont les même que le module coqlib dans android -> defaultConfig :
-```
-    minSdk 26
-    targetSdk 33
-```
-6. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
+5. Synchroniser Gradle -> "Sync Now" au popup en haut à droite...
   Le module "coqlib" devrait maintentant apparaître dans "Project".
+6. Toujours dans Gradle Scripts -> build.gradle du module project_name.app, vérifier aussi que les minSdk et targetSdk sont les même que le module coqlib :
+```
+  android {
+    ...
+    defaultConfig {
+      ...
+      minSdk 26
+      targetSdk 34
+      ...
+    }
+    ...
+  }
+```
+7. (Vérifier si on a la bonne version de kotlin dans Gradle Scripts -> build.gradle (du projet)) :
+```
+plugins {
+  ...
+  id 'org.jetbrains.kotlin.android' version '1.8.20' apply false
+}
+```
+8. Tester si l'app compile : Gradle -> "Sync Now", Run 'app'.
 
-7. Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
+
+## Afficher une sprite OpenGL
+
+Ajouter OpenGL dans le app->manifests->AndroidManifest.xml:
 ```html
   <manifest ...
   
   <uses-feature android:glEsVersion="0x00020000" android:required="true" />
   ...
-
 ```
-
-## Afficher une sprite OpenGL
-
 Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existante) :
   app -> java -> com...myapplication -> MainActivity.
 ```kotlin
@@ -83,11 +98,16 @@ Modifier le MainActivity pour un CoqActivity (effacer l'implémentation existant
                     0f, 0f, 1f,0f)
                 the_cat.addFlags(Flag1.show)
             }
+            // Écran d'acceuil (pour l'instant on n'affiche qu'une sprite)
+            override val openingScreen: Class<out Screen>? = null
             override fun willDrawFrame() {
                 // (pass, action sur la structure exécutée à chaque frame)
             }
             override fun didResume(sleepingTimeSec: Float) {
                 // pass, action lorsque l'on sort de veille.
+            }
+            override fun willSleep() {
+                // pass
             }
         }
     }

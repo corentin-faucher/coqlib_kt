@@ -269,6 +269,20 @@ class Texture {
             isInit = true
             loaded = true
         }
+        internal fun deinit() {
+            allStringTextures.clear()
+            allConstantStringTextures.clear()
+            allLocalizedStringTextures.clear()
+            allPngTextures.clear()
+            minisBitmaps.clear()
+            miniTranspBitmap = null
+            ctx = WeakReference(null)
+            currentTex = null
+            ptuTexMNId = -1
+            ptuTexWHId = -1
+            isInit = false
+            loaded = false
+        }
         internal fun bindTo(newTex: Texture) {
             if(newTex === currentTex) {
                 return

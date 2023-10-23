@@ -13,13 +13,13 @@ import java.util.*
 import kotlin.math.min
 import kotlin.random.Random
 
-class Sparkles : Node {
-    private constructor(
-        ref: Node,
-        x: Float, y: Float, height: Float,
-        tex: Texture, soundPoolId: Int,
-    ) : super(ref, x, y, 1f, 1f)
-    {
+class Sparkles private constructor(
+    ref: Node,
+    x: Float, y: Float, height: Float,
+    tex: Texture, soundPoolId: Int
+) : Node(ref, x, y, 1f, 1f)
+{
+    init {
         scaleX.set(height)
         scaleY.set(height)
         val i0 = Random.nextInt() % 32
@@ -78,7 +78,7 @@ class Sparkles : Node {
         ) : Sparkles?
         {
             if(!::screen.isInitialized) {
-                printerror("Sparkles not init. Called to Sparkles.initWith needed.")
+                printerror("Sparkles not init. Sparkles.screen and Sparkles.sparklesTex needed.")
                 return null
             }
             val sq = Squirrel(ref, ScaleInit.Deltas)

@@ -112,7 +112,10 @@ fun <K, T> MutableMap<K, WeakReference<T>>.strip() {
 }
 
 fun <T> MutableList<WeakReference<T> >.strip() {
-    this.removeIf { it.get() == null }
+    val toRemoves = filter { it.get() == null }
+    for(toRemove in toRemoves)
+        remove(toRemove)
+//    this.removeIf { it.get() == null }
 }
 
 /** Incrémenter le compteur d'un dictionnaire utlisé pour compter les frequences. */

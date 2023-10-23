@@ -28,7 +28,7 @@ object RenderingChrono {
         get() = elapsedMS - touchTime > sleepTime
 
     /** Setter isPause à "false" a pour effet d'empêcher de s'endormir (touch). */
-    var isPaused: Boolean = false
+    internal var isPaused: Boolean = false
         set(newValue) {
             if(!newValue) {
                 touchTime = elapsedMS
@@ -36,7 +36,7 @@ object RenderingChrono {
             }
             field = newValue
         }
-    fun update() {
+    internal fun update() {
         if(isPaused) return
         // Manip pour un deltaT smooth...
         val currentTime = AppChrono.systemTime
@@ -51,18 +51,27 @@ object RenderingChrono {
         if(elapsedAngleMS > angleLoopTime)
             elapsedAngleMS -= 2* angleLoopTime
     }
+    internal fun reset() {
+        isPaused = false
+        elapsedMS = 0L
+        elapsedAngleMS = 0L
+        touchTime = 0L
+        touchAngleMS = 0L
+        lastTime = AppChrono.systemTime
+        smoothDeltaT.set(16.7f)
+    }
 
     // Temps entre 2 frame (a priori 17 ms, i.e. 60 fps)
     private var smoothDeltaT = SmoothPos(16.7f, 5f)
     private var lastTime = AppChrono.systemTime
-    private var touchTime: Long = 0L
+    internal var touchTime: Long = 0L
     private var touchAngleMS: Long = 0L
     private const val sleepTime: Long = 16000L
     private const val angleLoopTime: Long = (60000.0 * PI).toLong()
 }
 
 /** Chronometre du temps écoulé depuis l'ouverture de l'app. (Vrais ms/sec écoulées) */
-object AppChrono {
+internal object AppChrono {
     var isPaused: Boolean = false
         set(newValue) {
             // (pass si pas de changement)
@@ -82,12 +91,19 @@ object AppChrono {
     val lastSleepTimeSec: Float
         get() = lastSleepTimeMS.toFloat() / 1000f
 
+    fun reset() {
+        isPaused = false
+        time = systemTime
+        lastSleepTimeMS = 0L
+        startSleepTimeMS = 0L
+    }
+
     /** "time" : Si isPause : temps total écoulé sans pause, sinon c'est le systemTime au départ (et sans pause).
      * i.e. isPause == true : time == elapsedTime,  isPause == false : time == systemTime - elapsedTime. */
     private var time: Long = systemTime
     private var lastSleepTimeMS: Long = 0L
     private var startSleepTimeMS: Long = 0L
-    internal val systemTime: Long
+    val systemTime: Long
         get() = System.currentTimeMillis()
 }
 

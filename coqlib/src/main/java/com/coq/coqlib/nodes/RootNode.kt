@@ -90,9 +90,12 @@ open class RootNode : Node {
         reshapeBranch()
     }
     // (Axe des y inversé : facteur -1 pour les y. et retirer l'espace occupé par la bar d'état...)
-    fun getPositionFrom(locationInWindowX: Float, locationInWindowY: Float) : Vector2
-            = Vector2((locationInWindowX / frameWidthPx - 0.5f) * frameWidth,
-        -((locationInWindowY - statusBarTopPx) / frameHeightPx - 0.5f) * frameHeight + yShift)
+    fun getPositionFrom(locationInWindowX: Float, locationInWindowY: Float) : Vector2 {
+        return Vector2(
+            (locationInWindowX / frameWidthPx - 0.5f) * frameWidth,
+            -((locationInWindowY - statusBarTopPx) / frameHeightPx - 0.5f) * frameHeight + yShift
+        )
+    }
 
     // Retrouver le frame absolue dans la vue de l'activité Android (en pixels)
     fun getFrameFrom(pos: Vector2, deltas: Vector2) : Pair<Vector2, Vector2>
@@ -152,6 +155,7 @@ abstract class AppRootBase : RootNode
     abstract fun willDrawFrame()
     abstract fun didResume(sleepingTimeSec: Float)
     abstract fun willSleep()
+    abstract val openingScreen: Class<out Screen>?
 
     fun changeActiveScreen(newScreen: Screen?) {
         // 0. Cas "réouverture" de l'écran. ** Utile, superflu ?? **

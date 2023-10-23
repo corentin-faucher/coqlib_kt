@@ -131,4 +131,11 @@ object SoundManager {
             initSound(soundId, volumeID)
         }
     }
+    internal fun deinit() {
+        soundPool = null
+        audioManager = null
+        soundPoolIdOfRawRes.clear()
+        volumeIdOfSoundPoolId.clear()
+        ctx = WeakReference(null)
+    }
 }

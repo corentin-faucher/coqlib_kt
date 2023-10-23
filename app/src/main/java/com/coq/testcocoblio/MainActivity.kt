@@ -14,9 +14,9 @@ import java.util.*
 class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
     null, null, null)
 {
-    override fun getExtraTextureTilings(): Map<Int, Tiling> {
-        // Ici on ajoute le tiling des pngs du projet (dans res/drawable).
-        return mapOf(
+    // Ici on ajoute le tiling des pngs du projet (dans res/drawable).
+    override fun getExtraTextureTilings(): Map<Int, Tiling>
+        = mapOf(
             R.drawable.country_flags to Tiling(8, 4),
             R.drawable.digits_brown to Tiling(12, 2),
             R.drawable.digits_green to Tiling(12, 2),
@@ -24,10 +24,8 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
             R.drawable.icons to Tiling(8, 4),
             R.drawable.some_animals to Tiling(4, 7),
         )
-    }
-
-    override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>> {
-        return arrayOf(
+    override fun getExtraSoundIdsWithVolumeIds(): Array<Pair<Int, Int>>
+        = arrayOf(
             R.raw.arpeggio to 0,
             R.raw.clap_clap to 0,
             R.raw.go_start to 0,
@@ -37,29 +35,24 @@ class MainActivity : CoqActivity(R.style.Theme_TestCocoblio,
             R.raw.ship_horn to 0,
             R.raw.tac_tac to 0,
         )
-    }
-    override fun getAppRoot(): AppRootBase {
-        // Retourné la basse de la structure de l'app.
-        // (gardée par le renderer)
-        return AppRoot(this)
-    }
+    override fun getAppRoot(): AppRootBase
+        = AppRoot(this)
 }
 
 /** Noeud racine de la structure à afficher... */
 class AppRoot(coqActivity: CoqActivity) : AppRootBase(coqActivity) {
     init {
-        /** Y mettre : un écran de fond, */
+        /** On place un écran de fond, (voir définition plus bas) */
         Background(this)
-        /** Puis, commencer dans un écran "FirstScreen" (voir plus bas pour FirstScreen...) */
-        changeActiveScreenToNewOfClass(FirstScreen::class.java)
     }
+    // Écran d'acceuil (voir FirstScreen plus bas)
+    override val openingScreen: Class<out Screen> = FirstScreen::class.java
     override fun willDrawFrame() {
         // (pass, rien à mettre à jour...)
     }
     override fun didResume(sleepingTimeSec: Float) {
         // (pass, rien à faire après un retour)
     }
-
     override fun willSleep() {
         // pass...
     }

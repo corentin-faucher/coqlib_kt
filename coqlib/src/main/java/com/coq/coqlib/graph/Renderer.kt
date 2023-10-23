@@ -10,40 +10,25 @@ package com.coq.coqlib.graph
 import android.graphics.Rect
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.view.KeyEvent
+import android.os.Build
 import com.coq.coqlib.*
-import com.coq.coqlib.maths.Vector2
-import com.coq.coqlib.maths.distanceTo
 import com.coq.coqlib.maths.scale
 import com.coq.coqlib.maths.translate
 import com.coq.coqlib.nodes.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class Renderer(private val activity: CoqActivity,
+internal class Renderer(private val activity: CoqActivity,
                private val customVertShadResID: Int?,
                private val customFragShadResID: Int?,
                setForDrawing: (Node.() -> Surface?)?
-)
-    : GLSurfaceView.Renderer
+) : GLSurfaceView.Renderer
 {
-    // Fonction à utiliser pour dessiner un noeud (customizable)
-    // (en fait, ça ne fait que préparer les "for instance uniforms" pour la frame courante).
+    // ID du programme des shaders...
+    private var programID: Int = -1
+    // Préparation d'un noeud avant l'affichage.
+    // Si c'est une surface à dessiner, retourne le noeud en tant que surface.
     private val setForDrawing : (Node.() -> Surface?) = setForDrawing ?: Node::defaultSetNodeForDrawing
-    private lateinit var root: AppRootBase
-
-    private var isPaused: Boolean = false
-        set(value) {
-            RenderingChrono.isPaused = value
-            AppChrono.isPaused = value
-            if(value != field) {
-                if(value)
-                    root.willSleep()
-                else
-                    root.didResume(AppChrono.lastSleepTimeSec)
-            }
-            field = value
-        }
 
     /*-- Méthodes devant être définies pour Renderer de GLSurfaceView. --*/
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -76,34 +61,47 @@ class Renderer(private val activity: CoqActivity,
         // ID OpenGL de la matrice de projection et le temps pour les shaders.
         pfuProjectionID = GLES20.glGetUniformLocation(programID, "projection")
         pfuTimeID =  GLES20.glGetUniformLocation(programID, "time")
-        // 3. Init de Texture
+
+        // Init de Texture
         Texture.init(activity, programID, activity.getExtraTextureTilings())
-        // 4. Init des meshes de bases et des vertex attributes.
+        // Init des meshes de bases et des vertex attributes.
         Mesh.init(programID)
-        // 5. Init des Per Instance Uniforms (ID opengl), e.g. matrice model, couleur d'un objet...
+        // Init des Per Instance Uniforms (ID opengl), e.g. matrice model, couleur d'un objet...
         PerInstanceUniforms.init(programID)
-        // 6. Init de la structure (à faire après les autres init)
-        root = activity.getAppRoot()
+        // 8. Init de la structure (à faire en dernier)
+        activity.setAppRoot()
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
         val rect = Rect()
         activity.window.decorView.getWindowVisibleDisplayFrame(rect)
-        root.updateFrameSize(width, height, rect.top,0f, 0f, 0f, 0f)
         if (!Texture.loaded) {
-            isPaused = false
+            activity.isPaused = false
             printdebug("Resuming renderer")
             Texture.resume()
         }
+        val root = activity.root ?: run {
+            printerror("Changing GL surface without root?")
+            return
+        }
+        root.updateFrameSize(width, height,
+            if(activity.isWindows) 0 else rect.top, // Taille de la status bar en haut... un peu bogue sur tablettes android? TODO next : verifier dans chromebook...)
+            0f, 0f, 0f, 0f)
+
     }
 
     override fun onDrawFrame(gl: GL10?) {
         if(RenderingChrono.shouldSleep) {
-            isPaused = true
+            activity.isPaused = true
             Thread.sleep(500)
         }
         // 1. Mise à jour de la couleur de fond.
+        val root = activity.root ?: run {
+            GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f)
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+            return
+        }
         GLES20.glClearColor(root.smR.pos, root.smG.pos, root.smB.pos, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         // 2. Mise à jour des "Per frame uniforms" et du chrono.
@@ -124,91 +122,6 @@ class Renderer(private val activity: CoqActivity,
         Texture.unbind()
     }
 
-    internal fun onPause() {
-        isPaused = true
-        Texture.suspend()
-    }
-
-    /*-- Touch et Drag d'objets --*/
-    private var downAbsPos = Vector2(0f, 0f)
-    private var startMoving = false
-    private var wasSlidingMenu = false
-    internal fun onDown(posX: Float, posY: Float) {
-        isPaused = false
-        // 1. Position normalisée (et absolue) par rapport à la root, e.g. pos dans [-1.7, 1.7] x [-1, 1].
-        downAbsPos = root.getPositionFrom(posX, posY)
-        startMoving = false
-        wasSlidingMenu = false
-        // 2. Essayer de trouver un noeud à cette position.
-        val selected = root.searchBranchForSelectableAt(downAbsPos, null) ?: return
-        // Vérifier le cas sliding menu (prendre le sliding menu au lieu du selected child si ce dernier n'est pas dragable).
-        val touched = if(selected !is Draggable) (selected.parent?.parent as? SlidingMenu) ?: selected else selected
-        when(touched) {
-            // Prendre si draggable
-            is Draggable -> {
-                root.grabbedNode = touched
-                touched.grab(downAbsPos)
-            }
-            // Sinon activer le noeud sélectionné (non Draggable)
-            is Button -> touched.action()
-            is Enterable -> touched.enterAction()
-        }
-    }
-    internal fun onMove(newPosX: Float, newPosY: Float) {
-        isPaused = false
-        val newAbsPos = root.getPositionFrom(newPosX, newPosY)
-        val dist = newAbsPos.distanceTo(downAbsPos)
-        // Il faut un minimum de déplacement pour "activer" le mode déplacement déplacement.
-        // (Si bouge pas vraiment -> simple "touch")
-        if( !startMoving && dist < 0.03 ) return
-        // Ok, on bouge... (le noeud grabbé si présent)
-        startMoving = true
-        val grabbed = root.grabbedNode ?: return
-        (grabbed as? Draggable)?.drag(newAbsPos)
-    }
-    internal fun onUp() {
-        val grabbed = root.grabbedNode ?: return
-        root.grabbedNode = null
-        (grabbed as? Draggable)?.letGo()
-    }
-    internal fun onHovering(posX: Float, posY: Float) {
-        val absPos = root.getPositionFrom(posX, posY)
-        val hovered = root.searchBranchForSelectableAt(absPos, null)
-        if(hovered !== root.selectedNode) {
-            (root.selectedNode as? Hoverable)?.stopHovering()
-            root.selectedNode = hovered
-        }
-        // (Oui, on recall startHovering à chaque cursorMove...
-        // -> Il faut arrêter de bouger pour qu'il se passe quelque chose.)
-        (hovered as? Hoverable)?.startHovering()
-    }
-    internal fun onScroll(deltaY: Float) {
-        val scrollable: Node = root.searchBranchForFirstSelectableUsing { it is Scrollable } ?: return
-        (scrollable as? Scrollable)?.scroll(deltaY)
-    }
-    /*-- Keyboard events --*/
-    internal fun onKeyDown(key: KeyboardInput) {
-        isPaused = false
-        when(key._keycode) {
-            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER ->
-                (root.activeScreen as? Enterable)?.let { it.enterAction(); return }
-            KeyEvent.KEYCODE_ESCAPE ->
-                (root.activeScreen as? Escapable)?.let { it.escapeAction(); return }
-        }
-        val kr = (root.activeScreen as? KeyResponder) ?: return
-        if(Scancode.isMod(key.scancode))
-            kr.modifiersChangedTo(key.keymod)
-        else
-            kr.keyDown(key)
-    }
-    internal fun onKeyUp(key: KeyboardInput) {
-        val kr = (root.activeScreen as? KeyResponder) ?: return
-        if(Scancode.isMod(key.scancode))
-            kr.modifiersChangedTo(key.keymod)
-        else
-            kr.keyUp(key)
-    }
-
     /*-- Private stuff --*/
     /** Dessiner une surface */
     private fun Surface.draw() {
@@ -223,8 +136,6 @@ class Renderer(private val activity: CoqActivity,
     }
 
     /*-- Stuff OpenGL... --*/
-    // ID du programme des shaders...
-    private var programID: Int = -1
     // ID des "per frame uniforms"
     private var pfuProjectionID: Int = -1
     private var pfuTimeID: Int = -1

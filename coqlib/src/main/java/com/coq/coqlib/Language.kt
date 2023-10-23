@@ -31,6 +31,9 @@ enum class Language(val iso: String) {
             coqAct = WeakReference(coqActivity)
             current = getSystemLanguage()
         }
+        fun deinit() {
+            coqAct = WeakReference(null)
+        }
         fun getSystemLanguage(): Language {
             val iso = coqAct.get()?.let {
                 it.resources.configuration.locales.get(0).language ?: "en"
