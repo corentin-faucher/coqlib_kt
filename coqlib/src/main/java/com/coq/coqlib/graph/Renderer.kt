@@ -10,7 +10,6 @@ package com.coq.coqlib.graph
 import android.graphics.Rect
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.os.Build
 import com.coq.coqlib.*
 import com.coq.coqlib.maths.scale
 import com.coq.coqlib.maths.translate

@@ -14,7 +14,6 @@ import android.os.Build
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.rotationMatrix
 import com.coq.coqlib.graph.Renderer
 import com.coq.coqlib.graph.Texture
 import com.coq.coqlib.maths.Vector2
@@ -104,10 +103,10 @@ abstract class CoqActivity(private val appThemeID: Int,
         Language.deinit()
         Texture.deinit()
     }
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        // Pass pour l'instant... pourrait verifier le clavier ou la langue... (superflu ?)
-    }
+//    override fun onConfigurationChanged(newConfig: Configuration) {
+//        super.onConfigurationChanged(newConfig)
+//        // Pass pour l'instant... pourrait verifier le clavier ou la langue... (superflu ?)
+//    }
     // Init de la structure (fait dans onSurfaceCreated du renderer)
     internal fun setAppRoot() {
         val root = getAppRoot()

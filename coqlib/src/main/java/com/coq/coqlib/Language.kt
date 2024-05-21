@@ -68,6 +68,8 @@ enum class Language(val iso: String) {
             get() = currentIs(Arabic)
         val currentDirectionFactor: Float
             get() = if(current == Arabic) -1f else 1f
+        val currentUseMaruCheck: Boolean
+            get() = (current == Japanese) || (current == Korean)
         internal val currentCtx: Context?
             get() = coqAct.get()?.localizedCtx
 
